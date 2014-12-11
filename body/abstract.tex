@@ -8,45 +8,26 @@
 %%==================================================
 
 \begin{abstract}
-	当今因特网和云服务每天都要产生数量惊人的日志流，存储日志流消耗了大量的
-	磁盘空间并产生巨额的开销。
-	传统的压缩方法能够用于降低存储的代价，但是它们在日志分析上的场景是低效的，
-	因为从压缩后的数据中获取相关的日志条目通常需要获取并解压缩一整块的数据。
+	随着计算机硬件和网络带宽的发展，云计算在个人的日常使用中以及商业用途中扮演起了越来越重要的角色。
+	得益于云存储的大容量，高可靠性，易访问性的特点，越来越多的个人和企业选择了把他们的文档存储到了云存储上。
+	在对云文档的操作里面，搜索是一项非常常用也非常有用的功能。
+	怎么保证云搜索的结果是正确的这个问题也变得重要起来。
+	在这个问题上已经有不少的相关工作，但是一个高效的高扩展性的系统到现在也没有推广开来。
+
+	我们设计并实现了一个云搜索正确性的快速验证系统。该系统有着高效，高扩展性，易维护性的特点。我们使用了两个测试数据集进行了测试，测试结果表示我们的系统有着不错的效率提升，能处理的数据规模达到了100GB级别。
 	
-	我们提出一个针对具有良好格式的日志流的列式压缩方法，这一方法使得每个日志
-	条目在用于日志分析时能够独立解压缩。
-	我们将每一个日志条目分成多个列，并对每个列采用不同的模型进行压缩。
-	我们已经将这一压缩方法实现为一个库并且将其整合到两个不同的应用中，
-	一个是日志搜索系统，另一个是日志连接系统。
-	实验结果表明我们的压缩策略在解压缩时间上胜于传统的压缩方法，并且有着
-	与之相媲美的压缩率。
-	对于日志搜索系统，我们的方法能够取得更快的搜索时间；
-	对于日志连接系统，我们的方法相比于未压缩的日志流连接，
-	在达到相同的连接质量时，只占用了30\%的内存。
-	
-  	\keywords{\large 日志压缩 \quad 日志搜索 \quad 日志连接}
+  	\keywords{\large 云计算 \quad 验证计算 \quad 文档搜索}
 \end{abstract}
 
 \begin{englishabstract}
 
-	Nowadays massive log streams are generated from many Internet and cloud services.
-	Storing log streams consumes a large amount of disk space and incurs high cost.
-	Traditional compression methods can be applied to reduce storage cost,
-	but are inefficient for log analysis, because fetching relevant log entries
-	from compressed data often requires retrieval and decompression of large blocks of data.
-	
-	We propose a column-wise compression approach for well-formatted log streams,
-	where each log entry can be independently compressed or decompressed for analysis. 
-	Specifically, we separate a log entry into several columns and compress each
-	column with different models. 
-	We have implemented our approach as a library and integrated it into two applications, 
-	a log search system and a log joining system.
-	Experimental results show that our compression scheme outperforms traditional
-	compression methods for decompression times and has a competitive compression ratio.
-	For log search, our approach achieves better query times
-	than using traditional compression algorithms for both in-core and out-of-core cases.  
-	For joining log streams, our approach achieves the same join quality with only
-	30\% memory of uncompressed streams.
-	
-	\englishkeywords{\large Log Compression, Log Search, Log Joining}
+	Nowadays cloud computing is popular in business and daily usage. 
+	More and more documents are kept in cloud storage for large storage capicity, high availability and accessible. 
+	To providing better service, searching documents on cloud is provided by cloud providers.
+	How to proof the correctness of the searching result is an problem coming with this feature.
+	Previous work has proposed many useful theories on verifiable computing, such as probabilistically checkable proofs, authHashtable, but an efficient and scalable system is rare.
+
+	We design and implement a fast proof generating system for verifying cloud search based on RSA accumulators, nonmembership witnesses. The system is system and scalable. Evaluation on real datasets shows that our system can speed up the proof generating compared to the raw method and our system can handle datasets with size up to 100GB.
+
+	\englishkeywords{\large Cloud Computing, Verifiable Computing, Document Search}
 \end{englishabstract}
