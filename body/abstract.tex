@@ -1,0 +1,52 @@
+%%==================================================
+%% abstract.tex for SJTU Master Thesis
+%% based on CASthesis
+%% modified by wei.jianwen@gmail.com
+%% version: 0.3a
+%% Encoding: UTF-8
+%% last update: Dec 5th, 2010
+%%==================================================
+
+\begin{abstract}
+	当今因特网和云服务每天都要产生数量惊人的日志流，存储日志流消耗了大量的
+	磁盘空间并产生巨额的开销。
+	传统的压缩方法能够用于降低存储的代价，但是它们在日志分析上的场景是低效的，
+	因为从压缩后的数据中获取相关的日志条目通常需要获取并解压缩一整块的数据。
+	
+	我们提出一个针对具有良好格式的日志流的列式压缩方法，这一方法使得每个日志
+	条目在用于日志分析时能够独立解压缩。
+	我们将每一个日志条目分成多个列，并对每个列采用不同的模型进行压缩。
+	我们已经将这一压缩方法实现为一个库并且将其整合到两个不同的应用中，
+	一个是日志搜索系统，另一个是日志连接系统。
+	实验结果表明我们的压缩策略在解压缩时间上胜于传统的压缩方法，并且有着
+	与之相媲美的压缩率。
+	对于日志搜索系统，我们的方法能够取得更快的搜索时间；
+	对于日志连接系统，我们的方法相比于未压缩的日志流连接，
+	在达到相同的连接质量时，只占用了30\%的内存。
+	
+  	\keywords{\large 日志压缩 \quad 日志搜索 \quad 日志连接}
+\end{abstract}
+
+\begin{englishabstract}
+
+	Nowadays massive log streams are generated from many Internet and cloud services.
+	Storing log streams consumes a large amount of disk space and incurs high cost.
+	Traditional compression methods can be applied to reduce storage cost,
+	but are inefficient for log analysis, because fetching relevant log entries
+	from compressed data often requires retrieval and decompression of large blocks of data.
+	
+	We propose a column-wise compression approach for well-formatted log streams,
+	where each log entry can be independently compressed or decompressed for analysis. 
+	Specifically, we separate a log entry into several columns and compress each
+	column with different models. 
+	We have implemented our approach as a library and integrated it into two applications, 
+	a log search system and a log joining system.
+	Experimental results show that our compression scheme outperforms traditional
+	compression methods for decompression times and has a competitive compression ratio.
+	For log search, our approach achieves better query times
+	than using traditional compression algorithms for both in-core and out-of-core cases.  
+	For joining log streams, our approach achieves the same join quality with only
+	30\% memory of uncompressed streams.
+	
+	\englishkeywords{\large Log Compression, Log Search, Log Joining}
+\end{englishabstract}
