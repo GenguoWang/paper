@@ -6,7 +6,7 @@ all: $(THESISMAIN).pdf
 
 $(THESISMAIN).pdf : $(THESISMAIN).tex body/*.tex ref.bib *.cls *.cfg
 	xelatex -no-pdf --interaction=nonstopmode diss
-#	bibtex diss
+	#bibtex diss
 	xelatex -no-pdf --interaction=nonstopmode diss
 	xelatex --interaction=nonstopmode diss
 
