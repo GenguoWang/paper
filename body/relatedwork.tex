@@ -1,4 +1,42 @@
 \chapter{相关工作}
 \label{chap:relatedwork}
+在本章，我们介绍本课题用到的一些相关的工作。主要的介绍了我们系统使用的云搜索验证机制。该机制使用了RSA Accumulator\cite{goodrich2002efficient,verifiableindex}来进行集合元素的存在性验证。接下来，我们先介绍RSA Accumulator，然后再介绍下基于RSA Accumulator的验证机制。
 
+\section{RSA Accumulator}
+RSA Accumulator是One-way Accumulator\cite{benaloh1994one}的一种直观的扩展。它可以用来计算集合的membership witness(用于证明一个元素属于一个集合)和nonmembership witness(用于证明一个元素不属于一个集合)。
+取X = \{$x_1, x_2, ... , x_{|X|}$\}作为输入集合，其中的每个元素$x_i$都是质数。然后我们选择两个比较大(比如说1024位的)的质数。随后我们取与n=pq互质的一个数g作为底数。那么集合X的Accumulator为:
+\begin{equation} c = g^{\prod_{i = 1}^{|X|} x_i}\ mod\ n \end{equation}
+
+我们可以把这个Accumulator理解成类似集合的指纹。任何人在不得知p和q的情况下，是无法在多项式时间内找到另一个集合$Y \neq X$，且集合Y的Accumulator也是c。这个性质可以有强RSA假设来推导出。
+
+我们取X的子集$X^{\prime} = \{x_{i_1}, x_{i_2}, ... , x_{i_{|X^\prime}}\}$, 那么$X_\prime \subseteq X$的Membership Witness为:
+\begin{equation} \label{eq:w} c_{X^\prime} = g^{\prod_{x \in X - X^\prime} x}\ mod\ n \end{equation}
+
+有了这个Membership Witness, 我们如果要证明$X_\prime \subseteq X$ 只需要验证下式是否成立:
+\begin{equation} \label{eq:vw} c_{X^\prime}^{\prod_{x \in X^\prime} x} = c\ mod\ n\end{equation}
+从式子\ref{eq:vw}可以看出，对于$X_\prime \subseteq X$的验证，我们所需要关于集合X的信息只要知道它的Accumulator c就行了，而不用知道它包含哪些元素。
+
+我们另去集合 $Y = \{y_1, y_2, ... , y_{|Y|}\}$，它的每个元素$y_i$都是质数，且 $Y \bigcap X = \phi$。那么集合Y相对于X的Nonmembership Witness是这样一个二元组(a, d) 其中
+$au + bv = 1, d = g^{-b}\ mod\ n, u = \prod_{x \in X} x, v = \prod_{y \in Y} y$
+
+如果我们要证明 $Y \bigcap X = \phi$，只需要验证下式是否成立：
+\begin{equation} \label{eq:vnw} c_a = d^v g\ mod\ n \end{equation}
+
+\section{验证机制}
+The verifiable cloud search receive user's query and return the result document set with their rank weight and query proof for verify the query result. Illustrated in \cite{verifiableindex}, the process of verifiable cloud search consisted of three steps: build verifiable index, cloud indexing, verify proof.
+
+Build verifiable index: 
+To use the RSA Accumulator, the verifiable index is model as a map from a term $t_i$ to a set of docId tuples, where docID means a document ID which contains term $t_i$ and w is term $t_i$'s weight in this document.
+
+For each term, the client compute the accumulator of the set and keep a local copy.
+
+Cloud Indexing:
+When received a query, the cloud server lookup verifiable index and find each query term $t_i$'s index data. Then the cloud server compute the intersection of the index data which is a set of docId of all query terms. The query result consisted of the intersection set of documents IDs and (docId,tuple) for each term and each docId in the intersection.
+
+Let $S_i$ be the set of document IDs for term $t_i$. For a query composed of term $t_i$ and $t_j$, the intersection $S = S_i \bigcap S_j$ contains the document that have both terms.
+The proof consisted of a correctness proof and an integrity proof. The correctness is the witness for $S \subseteq S_i$ and $S \subseteq S_j$ and the integrity proof is the nonmembership witness for $(S - S_i) \bigcap S_j = \phi$
+With the both correctness proof and integrity proof, we can proof $S = S_i \bigcap S_j$
+
+Verify proof:
+The client verify the result returned from the server with proofs. The client verify the correctness proof by checking the witness using equation 3 and verify the integrity proof by checking the nonmembership witness using equations 4.
 
