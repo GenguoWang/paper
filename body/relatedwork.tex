@@ -23,20 +23,24 @@ $au + bv = 1, d = g^{-b}\ mod\ n, u = \prod_{x \in X} x, v = \prod_{y \in Y} y$
 \begin{equation} \label{eq:vnw} c_a = d^v g\ mod\ n \end{equation}
 
 \section{验证机制}
-The verifiable cloud search receive user's query and return the result document set with their rank weight and query proof for verify the query result. Illustrated in \cite{verifiableindex}, the process of verifiable cloud search consisted of three steps: build verifiable index, cloud indexing, verify proof.
+我们的系统采用肋类似文章\cite{verifiableindex}中描述的验证机制。该验证机制的主要思路是把文档搜索的过程归结到集合之间求交集的过程，然后使用上一小节描述的RSA Accumulator以及Membership Witness、Nonmembership Witness来对集合求交集的结果进行验证。整个验证机制可以分为建立可验证的索引、云端检索和证明生成、验证证明这三个步骤。
 
-Build verifiable index: 
-To use the RSA Accumulator, the verifiable index is model as a map from a term $t_i$ to a set of docId tuples, where docID means a document ID which contains term $t_i$ and w is term $t_i$'s weight in this document.
+下面我们对这三个步骤分别进行介绍。
+\subsection{建立可验证的索引}
+为了保证索引和Accumulator的正确性，这一步骤是需要用户在本地环境操作的。为了使用RSA Accumulator来进行验证，我们使用倒排索引的方式给每个Term $t_i$建立到包含$t_i$的文档集合$D_i$。每一个文档用一个整数进行编号，记为docID。
 
-For each term, the client compute the accumulator of the set and keep a local copy.
+这样我们就得到一系列文档集合$D_i$。然后我们需要对每个集合$D_i$计算它的Accumulator，并存储在本地环境，用于之后的结果验证。
 
-Cloud Indexing:
-When received a query, the cloud server lookup verifiable index and find each query term $t_i$'s index data. Then the cloud server compute the intersection of the index data which is a set of docId of all query terms. The query result consisted of the intersection set of documents IDs and (docId,tuple) for each term and each docId in the intersection.
+在用户建立好索引并计算好Accumulator之后，便可以把文档、索引和Accumulator值之类的一起上传到云端。在后续的搜索里面，用户就无需在本地进行这些计算了，而不是没进行一次搜索，用户就要计算一次。
 
-Let $S_i$ be the set of document IDs for term $t_i$. For a query composed of term $t_i$ and $t_j$, the intersection $S = S_i \bigcap S_j$ contains the document that have both terms.
-The proof consisted of a correctness proof and an integrity proof. The correctness is the witness for $S \subseteq S_i$ and $S \subseteq S_j$ and the integrity proof is the nonmembership witness for $(S - S_i) \bigcap S_j = \phi$
-With the both correctness proof and integrity proof, we can proof $S = S_i \bigcap S_j$
+\subsection{云端检索和证明生成}
+这一步骤的工作室云端完成的。在云服务接受到用户搜索请求时，它首先是把这个请求拆分成一个一个的Term $t_i$。然后它到索引数据里面找$t_i$对应的文档集合$D_i$。随后我们对每一个文档集合$D_i$计算交集。这个交集里包含的文档，就是这次搜索的结果。
 
-Verify proof:
-The client verify the result returned from the server with proofs. The client verify the correctness proof by checking the witness using equation 3 and verify the integrity proof by checking the nonmembership witness using equations 4.
+我们以一个两个关键词的查询为例，比方说这个两个关键词为$t_i$、$t_j$,他们在倒排索引中对于的文档集合为$D_i$、$D_j$。那么搜索的结果是同时包含$t_i$、$t_j$的文档，也就是两个文档集合的交集$D = D_i \bigcap S_j$。
 
+接下去我们计算这个结果的证明，也就是证明$D = D_i \bigcap D_j$。我们的证明又两块组成：1. 正确性证明：使用Membership Witness来证明$D \subseteq D_i$和$D \subseteq D_j$，2. 完整性证明：使用Nonmembership Witness来证明 $(D - D_i) \bigcap D_j = \phi$。
+
+结合正确性证明和完整性证明，我就便可以证明$D = D_i \bigcap D_j$，也就证明了搜索结果是正确的了。
+
+\subsection{验证证明}
+这一步在用户本地进行。用户收到了云端返回的搜索结果和结果证明之后，使用等式\ref{eq:vw}来验证正确性证明，使用等式\ref{eq:nvw}来验证完整性证明。两个验证都通过的话，说明搜索结果是正确的。
