@@ -3,11 +3,25 @@
 在本章，我们介绍本课题用到的一些相关的工作。主要的介绍了我们系统使用的云搜索验证机制。该机制使用了RSA Accumulator\cite{goodrich2002efficient,verifiableindex}来进行集合元素的存在性验证。接下来，我们先介绍RSA Accumulator，然后再介绍下基于RSA Accumulator的验证机制。
 
 \section{RSA Accumulator}
-RSA Accumulator是One-way Accumulator\cite{benaloh1994one}的一种直观的扩展。它可以用来计算集合的membership witness(用于证明一个元素属于一个集合)和nonmembership witness(用于证明一个元素不属于一个集合)。
-取X = \{$x_1, x_2, ... , x_{|X|}$\}作为输入集合，其中的每个元素$x_i$都是质数。然后我们选择两个比较大(比如说1024位的)的质数。随后我们取与n=pq互质的一个数g作为底数。那么集合X的Accumulator为:
+在文章\cite{benaloh1994one}中，Benaloh和de Mare首次提出了One-way Accumulator的概念。One-way Accumulator主要是用来将一个集合的所有元素累积到一个比较小的值，同时该值保有一定了原集合的信息，可以用来做一些集合属性的验证。
+
+本课题使用的验证系统是基于一种特别的One-way Accumulator：RSA Accumulator.
+RSA Accumulator是One-way Accumulator\cite{benaloh1994one}的一种直观的扩展。它可以用来计算集合的membership witness(用于证明一个元素属于一个集合)和nonmembership witness(用于证明一个元素不属于一个集合)。在强RSA假设的保证下\cite{baric1997collision}，人们是无法在有限计算资源下伪造出这些Witness的。我们取整数k为加密强度参数，k越大加密级别越高。令 $l = \lfloor k/2 \rfloor - 2$，并令 $\chi_k$ 为集合$\mathbb{Z}_{2^l}$中的质数元素的集合，取$n = pq$为长度k的随机的模数，其中p和q是两个长度相等的安全质数。
+
+取集合$\chi_k$的一个子集X = \{$x_1, x_2, ... , x_{|X|}$\}作为输入集合，那么集合X的每个元素就都是质数，并取g为n的一个随机的二次剩余模量。那么集合X的Accumulator为:
 \begin{equation} c = g^{\prod_{i = 1}^{|X|} x_i}\ mod\ n \end{equation}
 
-我们可以把这个Accumulator理解成类似集合的指纹。任何人在不得知p和q的情况下，是无法在多项式时间内找到另一个集合$Y \neq X$，且集合Y的Accumulator也是c。这个性质可以有强RSA假设来推导出。
+我们可以把这个Accumulator理解成类似集合的指纹。任何人在不得知p和q的情况下，是无法在多项式时间内找到另一个集合$Y \neq X$，且集合Y的Accumulator也是c。这个性质可以有强RSA假设来保证的。如果有人能做到找到这样的集合，就说明他已经突破了强RSA假设。目前来说，强RSA假设用于了众多的安全加密领域，表明它还是足够安全的。
+
+对于集合元素$x_j$，它的Membership Witness为：
+\begin{equation} \label{eq:sw} c_{x_j} = g^{\prod_{i=1, i \ne j}^{|X|} x_i}\ mod\ n \end{equation}
+
+如果我们要验证$x_j \in X$的话，只需要验证$(c_{x_j})^{x_j} = c\ mod\ n$是否成立。
+
+对于一个属于$\chi_k$却不属于集合X的元素x，它的Nonmember Witness为一个二元组(a,d)\cite{li2007universal},其中a和d满足：
+\begin{equation} c^a = d^x\ mod\ n\end{equation}
+
+以上说的Membership Witness和Nonmembership Witness都是针对单个元素的，如果需要一次验证多个元素，那么我就就需要计算多个Witness并进行多次验证，这显得非常效率底下。为了处理多个元素的情况，以上的方法被稍微进行一些如下扩展，使之可以用作多个元素的Membership Witness和Nonmembership Witness。
 
 我们取X的子集$X^{\prime} = \{x_{i_1}, x_{i_2}, ... , x_{i_{|X^\prime}}\}$, 那么$X_\prime \subseteq X$的Membership Witness为:
 \begin{equation} \label{eq:w} c_{X^\prime} = g^{\prod_{x \in X - X^\prime} x}\ mod\ n \end{equation}
@@ -21,6 +35,8 @@ $au + bv = 1, d = g^{-b}\ mod\ n, u = \prod_{x \in X} x, v = \prod_{y \in Y} y$
 
 如果我们要证明 $Y \bigcap X = \phi$，只需要验证下式是否成立：
 \begin{equation} \label{eq:vnw} c_a = d^v g\ mod\ n \end{equation}
+
+\section{质数表示}
 
 \section{验证机制}
 我们的系统采用肋类似文章\cite{verifiableindex}中描述的验证机制。该验证机制的主要思路是把文档搜索的过程归结到集合之间求交集的过程，然后使用上一小节描述的RSA Accumulator以及Membership Witness、Nonmembership Witness来对集合求交集的结果进行验证。整个验证机制可以分为建立可验证的索引、云端检索和证明生成、验证证明这三个步骤。
@@ -44,3 +60,6 @@ $au + bv = 1, d = g^{-b}\ mod\ n, u = \prod_{x \in X} x, v = \prod_{y \in Y} y$
 
 \subsection{验证证明}
 这一步在用户本地进行。用户收到了云端返回的搜索结果和结果证明之后，使用等式\ref{eq:vw}来验证正确性证明，使用等式\ref{eq:nvw}来验证完整性证明。两个验证都通过的话，说明搜索结果是正确的。
+
+\section{本章小结}
+本章介绍了本课题相关的已有研究。主要是介绍了用于集合元素存在性验证的RSA Accumulator和基于RSA Accumulator的一套验证机制。
