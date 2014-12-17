@@ -5,7 +5,7 @@
 \section{RSA Accumulator}
 在文章\cite{benaloh1994one}中，Benaloh和de Mare首次提出了One-way Accumulator的概念。One-way Accumulator主要是用来将一个集合的所有元素累积到一个比较小的值，同时该值保有一定了原集合的信息，可以用来做一些集合属性的验证。
 
-本课题使用的验证系统是基于一种特别的One-way Accumulator：RSA Accumulator.
+本课题使用的验证系统是基于一种特别的One-way Accumulator：RSA Accumulator\cite{goodrich2002efficient}.
 RSA Accumulator是One-way Accumulator\cite{benaloh1994one}的一种直观的扩展。它可以用来计算集合的membership witness(用于证明一个元素属于一个集合)和nonmembership witness(用于证明一个元素不属于一个集合)。在强RSA假设的保证下\cite{baric1997collision}，人们是无法在有限计算资源下伪造出这些Witness的。我们取整数k为加密强度参数，k越大加密级别越高。令 $l = \lfloor k/2 \rfloor - 2$，并令 $\chi_k$ 为集合$\mathbb{Z}_{2^l}$中的质数元素的集合，取$n = pq$为长度k的随机的模数，其中p和q是两个长度相等的安全质数。
 
 取集合$\chi_k$的一个子集X = \{$x_1, x_2, ... , x_{|X|}$\}作为输入集合，那么集合X的每个元素就都是质数，并取g为n的一个随机的二次剩余模量。那么集合X的Accumulator为:
@@ -36,11 +36,28 @@ $au + bv = 1, d = g^{-b}\ mod\ n, u = \prod_{x \in X} x, v = \prod_{y \in Y} y$
 如果我们要证明 $Y \bigcap X = \phi$，只需要验证下式是否成立：
 \begin{equation} \label{eq:vnw} c_a = d^v g\ mod\ n \end{equation}
 
-\section{质数表示}
+\section{集合交集的证明}
+有了上一个小结介绍的Accumulator和Witness, 我们在这里介绍一种方法，可以用他们来生成集合交集是否正确的证明以及相应的验证方法。比如说有个用户要求计算两个集合$X_1, X_2$的交集，然后云端就计算了 $X = X_1 \bigcap X_2$返回给用户，同时返回由X分别属于$X_1, X_2$的Membership Witness组成的正确性证明。由于Membership Witness是无法伪造的，用户可以通过等式\ref{eq:vw}来验证X是不是正确的结果。
+
+但是这里还存在一个问题，就是计算X可能没有包含全部的交集元素。这个时候X也满足同时属于$X_1, X_2$，可以通过用户的验证，但却不是正确的结果。这说明仅仅用正确性证明是不够的。为了处理这种只返回部分结果的情况，我们需要一个完整性证明来保证集合X包含集合$X_1$，$X_2$的交集的全部元素。也就是说($X_1 - X$)不包含任何属于集合$X_2$的元素。这样的完整性证明有以下几个部分组成:
+\begin{itemize}
+\item 集合$X_\prime = X_1 - X$
+\item $X_\prime$属于$X_1$的Membership Witness
+\item $X_prime$不包含任何属于$X_2$的元素的Nonmembership Witness
+\end{itemize}
+
+用户可以通过等式\ref{eq:vnw}来验证Nonmembership Witness。在验证了正确性证明和完整性证明后，用户需要验证$X + X_\prime = X_1$来保证$X_prime$的正确性。这个验证可以通过计算$X + X_\prime$这个集合的Accumulator，然后与集合$X_1$的Accumulator进行比较。如果相等，则说明$X + X_\prime = X_1$成立。
+
+上面我们讲了两个集合交集的证明，简单扩展性就可以用于多个集合。对于m个集合的交集 $X = X_1 \bigcap X_2 \bigcap ... \bigcap X_m$。正确性证明还是和两个集合的情况一样，只是变成需要m个Membership Witness。至于完整性证明的话，我们还是选$X_\prime = X_1 - X$，那么我们需要证明$X_\prime$的每个元素至少不属于$X_2, X_3,...,X_m$中的一个。也就是说，我们需要对$X_\prime$的每个元素计算一个Nonmembership Witness。考虑到每个集合含有元素的多少可能会有较大的差异，我们可以选择含有元素最少的集合代替$X_1$来计算$X_\prime$，这样得到的$X_\prime$也是含有最少的元素数目，这样我们需要的Nonmembership Witness的数目也是最少的。
 
 \section{验证机制}
-我们的系统采用肋类似文章\cite{verifiableindex}中描述的验证机制。该验证机制的主要思路是把文档搜索的过程归结到集合之间求交集的过程，然后使用上一小节描述的RSA Accumulator以及Membership Witness、Nonmembership Witness来对集合求交集的结果进行验证。整个验证机制可以分为建立可验证的索引、云端检索和证明生成、验证证明这三个步骤。
+为了应用上面的Accumulator和Witness到搜索验证上，我们需要有一个把文档编号啊，Term等元素映射到质数表示的方法。幸运的是，关于质数表示的问题，文章\cite{gennaro1999secure,goodrich2002efficient}给出了一个可用的方法。该方法可以把任意k位的元素映射到3k位的质数空间上。文章\cite{verifiableindex}中提出的验证机制的主要思路是把文档搜索的过程归结到集合之间求交集的过程，然后使用上一小节描述的RSA Accumulator以及Membership Witness、Nonmembership Witness来对集合求交集的结果进行验证。
 
+首先，作为数据拥有着，用户需要自己选择或者随机生成一组安全的质数p和q，然后选择n=pq的一个随机二次剩余模数g。其中的n和g，用户会告诉云服务商。而p和q则需要自行保密。同时，用户需要将质数表示的生成器也告诉云服务商。
+
+这里，用户有个小的技巧，用户可以使用p和q来加速Accumulator的计算。由于p和q都是与g互质的，由欧拉定理可知$g^\phi(n)\ mod\ n = 1$。于是我们可以得到$g^x\ mod\ n  = g^{x mod \phi(n)}\ mod\ ni$。这里$\phi(n)$为欧拉函数，$\phi(n) = (p-1)(q-1)$。
+
+整个验证机制可以分为建立可验证的索引、云端检索和证明生成、验证证明这三个步骤。
 下面我们对这三个步骤分别进行介绍。
 \subsection{建立可验证的索引}
 为了保证索引和Accumulator的正确性，这一步骤是需要用户在本地环境操作的。为了使用RSA Accumulator来进行验证，我们使用倒排索引的方式给每个Term $t_i$建立到包含$t_i$的文档集合$D_i$。每一个文档用一个整数进行编号，记为docID。
