@@ -15,7 +15,6 @@
 
 
 % \usepackage[sectionbib]{chapterbib}%每章都用参考文献
-
 \newboolean{DOIT}
 \setboolean{DOIT}{false}%编译某些只想自己看的内容，编译true，否则false
 
@@ -26,11 +25,10 @@
 
 \long\def\comment#1{}
 
-\long\def\myfig#1#2#3#4{
-\begin{figure}[!tb]
+\long\def\myfig#1#2#3#4#5{
+\begin{figure}[htb]
   \centerline{\includegraphics[width=#2]{figures/#1}}
-  \caption{#3}
-  \label{fig:#4}
+  \bicaption[fig:#4]{图索引}{#3}{Fig}{#5}
 \end{figure}
 }
 
@@ -52,7 +50,8 @@
   language=C++,
   captionpos=b,
   tabsize=2,
-  frame=lines,
+  %frame=lines,
+  frame=shadowbox,
 %  numbers=left,
 %  numberstyle=\tiny,
 %  numbersep=5pt,
