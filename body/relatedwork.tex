@@ -1,6 +1,6 @@
 \chapter{相关工作}
 \label{chap:relatedwork}
-在本章，我们介绍本课题用到的一些相关的工作。主要的介绍了我们系统使用的云搜索验证机制。该机制使用了RSA Accumulator\cite{goodrich2002efficient,verifiableindex}来进行集合元素的存在性验证。接下来，我们先介绍RSA Accumulator，然后再介绍下基于RSA Accumulator的验证机制。
+在本章，我们介绍本课题用到或借鉴的一些相关的工作。主要的介绍了我们系统使用的云搜索验证机制。该机制使用了RSA Accumulator\cite{goodrich2002efficient,verifiableindex}来进行集合元素的存在性验证。接下来，我们先介绍RSA Accumulator，然后再介绍下基于RSA Accumulator的验证机制。最后介绍了一种基于单向加密哈希的查询验证机制。
 
 \section{RSA Accumulator}
 在文章\cite{benaloh1994one}中，Benaloh和de Mare首次提出了One-way Accumulator的概念。One-way Accumulator主要是用来将一个集合的所有元素累积到一个比较小的值，同时该值保有一定了原集合的信息，可以用来做一些集合属性的验证。
@@ -162,6 +162,9 @@ Bob收到这个查询之后，执行了查询过程，然后给Alice返回了结
 
 图\ref{fig:allpro}中给出了前面提到的几种方式的概率比较。从图中我们可以看出，在增加了2个假Challenge-Token的时候，服务商成功欺骗的概率相比$P_c(w,r=2)$已经降低了一半，而且通过再增加假Challenge-Token，可以进一步降低这个概率。而且增加假Challenge-Token的只需要随机生成一个数据，代价是很小的。
 
+从前面的介绍我们可以看出，这种基于单向加密哈希的查询验证方法有着简单的原理，可以方便的实现的。而且相比于客户端验证方式，该方法有着更高的验证成功率。文章\cite{sion2005query}中的实验评估数据也表明这个方法给查询系统带来的额外负担是很低的。但是该方法的缺点也很明显，一是，不能百分百的完全保证正确性；二是，只能是几个查询一起进行，不能进行单个的查询；最后不能防止云服务商在执行全部查询之后还恶意的返回错误结果。
+
 \section{本章小结}
 本章介绍了本课题相关的已有研究。主要是介绍了用于集合元素存在性验证的RSA Accumulator和基于RSA Accumulator的一套验证搜索机制。RSA Accumulator是将集合的每一个元素按照一定的函数进行得到的一个值。这个对于集合可以说是想指纹一样独一无二。在Accumulator的基础上，Membership Witness和Nonmembership Witness提供了集合元素存在性的验证功能。通过Membership Witness和Nonmembership Witness, 我们就可以进行集合求交集运算的结果证明。进一步，通过将文档搜索的过程转化为集合求交集的过程，我们就可以进行云搜索的结果证明。
+本章还介绍了一种基于单向加密哈希的查询验证方法。该方法的主要思路是在像云服务商提交查询前先对某一个查询计算结果，并对该结果加密。然后再发送查询的时候，把加密值也发送给云服务商，并要求云服务商返回这个加密值是哪个查询计算出来的。这样，云服务商就只能进行全部查询才能知道这个加密值是那个查询的。
 
