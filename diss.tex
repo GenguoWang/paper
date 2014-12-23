@@ -15,6 +15,30 @@
 
 
 % \usepackage[sectionbib]{chapterbib}%每章都用参考文献
+\usepackage{times}
+ \usepackage{epsfig}
+ \usepackage{graphicx}
+ \usepackage{amsmath}
+ \usepackage{amssymb}
+ \usepackage[lined,boxed,commentsnumbered, ruled]{algorithm2e}
+ \usepackage{bm}
+ \usepackage{multirow}
+ \usepackage{pgfplots}
+ %\pgfplotsset{compat=1.9}
+ \usepackage{pgfplotstable}
+
+\pgfplotstableset{fixed zerofill,precision=3}
+ \usepackage{tikz}
+\usetikzlibrary{patterns} %很重要，这个你用everything查下看看是否有这个**code.tex
+ \usepgfplotslibrary{groupplots} % 很重要，这个你用everything查下看看是否有这个**code.tex
+ \usepgfplotslibrary{patchplots}  % 很重要，这个你用everything查下看看是否有这个**code.tex
+ \usepackage{times}
+ \usepackage{booktabs}
+ \usepackage{array}
+ \usepackage{colortbl}
+ \usepackage{filecontents}
+
+
 \newboolean{DOIT}
 \setboolean{DOIT}{false}%编译某些只想自己看的内容，编译true，否则false
 

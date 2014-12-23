@@ -101,9 +101,10 @@ $au + bv = 1, d = g^{-b}\ mod\ n, u = \prod_{x \in X} x, v = \prod_{y \in Y} y$
 这一步在用户本地进行。用户收到了云端返回的搜索结果和结果证明之后，首先，为了防止第三方伪造信息，用户要验证该结果的签名是不是就是云服务的签名。然后，用户使用等式\ref{eq:vw}来验证正确性证明。最后，用户使用等式\ref{eq:nvw}来验证完整性证明。这几个验证都通过的话，就说明搜索结果是正确的。
 
 \section{一种基于加密哈希的查询验证方式}
-哈希算法由于其有着不可逆性的特点，在加密和安全领域有着广泛的使用。加密哈希(Cryptographic hash)\cite{CHash}TODO。
-\myfig{chash.eps}{3.5in}{一种数据委托模型}{chash}{Database Outsourcing Overview}
-文章\cite{sion2005query}中提出了一种基于加密哈希的查询验证方式。如图\ref{fig:chash}中所示，数据拥有者Alice把他的数据委托给数据服务商Bob来进行管理。Alice对数据进行的任何操作都是通过数据服务商提供的接口进行的，因此Alice无法得知数据服务商的内部操作是否是正确执行的。
+哈希算法是一种将任意长度的数据映射到固定长度数据的一种算法，而且输入数据的细微改变都会导致输出的巨大差异。单向加密哈希(One-way Cryptographic hash)\cite{CHash}是指哈希算法里面被认为无法进行逆运算的那一类，也就是说无法从给定的哈希值中计算出原来的输入数据是什么。由于这种不可逆性，单向加密哈希很多信息安全领域里众多应用，比如数字签名、信息认证以及各类形式的认证。
+
+\myfig{chash.eps}{3.5in}{一种数据委托模型\cite{sion2005query}}{chash}{Database Outsourcing Overview\cite{sion2005query}}
+文章\cite{sion2005query}中就提出了一种基于加密哈希的查询验证方式。如图\ref{fig:chash}中所示，数据拥有者Alice把他的数据委托给数据服务商Bob来进行管理。Alice对数据进行的任何操作都是通过数据服务商提供的接口进行的，因此Alice无法得知数据服务商的内部操作是否是正确执行的。
 
 考虑这样一个场景，Alice发送了b个查询 $\mathbb{Q} = \{Q_1, Q_2, ... ,Q_b\}$给Bob。
 Bob收到这个查询之后，执行了查询过程，然后给Alice返回了结果$\{\rho(Q_1), \rho(Q_2), ..., \rho(Q_b)\}$。
@@ -142,7 +143,7 @@ Bob收到这个查询之后，执行了查询过程，然后给Alice返回了结
 最后，服务商成功在计算w<b个查询的情况下，成功骗过客户端的概率为:
 \begin{equation} P(w,r) = \sum_{i=max(0,w+r-b)}^{min(r,w)} [P_0(b,w,r,i) \times P_1(b-w,r-i)] = \frac{1}{\binom{b}{r}}\sum_{i=max(0,w+r-b)}^{min(r,w)}\binom{w}{i} \end{equation}
 
-\myfig{pro.eps}{3.5in}{b = 20情况下的一些P(w,r)值}{pro}{The behavior of P(w,r) with b = 20}
+\myfig{pro.eps}{3.5in}{b = 20情况下的一些P(w,r)值\cite{sion2005query}}{pro}{The behavior of P(w,r) with b = 20\cite{sion2005query}}
 如图\ref{fig:pro}所示，在增加了Challenge-Token之后，服务商要达到同样的欺骗成功概率就需要执行多的多的查询。比如说，对于20个查询和3个Challenge-Token的情况，如果需要达到40\%的欺骗成功率，那么服务商至少需要执行其中的14个查询。而当只有一个Challenge-Token时，它只需要执行一个查询。
 
 当然，客户端检测的方式也同样可以使用增加检测的查询数目来降低被服务商欺骗成功的概率。架势客户端选择了$1 < r \le w$个查询结果进行检查，那么被服务商成功欺骗的概率为：
@@ -158,7 +159,7 @@ Bob收到这个查询之后，执行了查询过程，然后给Alice返回了结
 在增加了假Challenge-Token之后，服务商如果还是要在只计算w < b个查询的情况下伪造结果试图骗过数据拥有者，那么需要猜测有哪些Challenge-Token，成功欺骗的概率为:
 \begin{equation}P^\prime(w,r,f) = \frac{1}{\binom{b}{r}}\sum_{i=max(0,w+r-b)}^{min(r,w)}[\frac{\binom{w}{i}}{min(b-w,max(1,r+f-i))}]\end{equation}
 
-\myfig{allpro.eps}{3.5in}{几种方式的概率比较}{allpro}{The behavior of different method}
+\myfig{allpro.eps}{3.5in}{几种方式的概率比较\cite{sion2005query}}{allpro}{The behavior of different method\cite{sion2005query}}
 
 图\ref{fig:allpro}中给出了前面提到的几种方式的概率比较。从图中我们可以看出，在增加了2个假Challenge-Token的时候，服务商成功欺骗的概率相比$P_c(w,r=2)$已经降低了一半，而且通过再增加假Challenge-Token，可以进一步降低这个概率。而且增加假Challenge-Token的只需要随机生成一个数据，代价是很小的。
 

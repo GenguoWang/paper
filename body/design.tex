@@ -10,7 +10,11 @@
 
 在我们的系统里，每个模块都是一个可以单独启动的进程，模块之间使用HTTP协议进行交互。采用这样设计的原因主要是：1. 采用单独的进程可以让每个模块进行单独的部署，而不需要都部署到一台机器，这样使得系统有比较好的可扩展性，2. HTTP是一种使用得非常广泛也非常易于使用的协议，采用HTTP可以让我们的系统可以更加容易进行调试也方便了一些扩展模块的开发。
 
-具体的，考虑到高可靠性，扩展性，高可维护性的要求，我们将系统分为了Index Generator, Search Client, Search Server, Query Node, Correctness Server, Integrity Server, Prime Manager这几个组成部分。下面，我们对这几个组成部分分别进行介绍。
+具体的，考虑到高可靠性，扩展性，高可维护性的要求，我们将系统分为了Index Generator, Search Client, Search Server, Query Node, Correctness Server, Integrity Server, Prime Manager这几个组成部分。我们会在后续的内容中对这几个组成部分分别进行介绍。
+
+我们的系统采用了C++来进行实现，用到了很多boost库的内容，比如利用了其中的Asio来进行异步的HTTP请求。在高精度计算方面，我们采用了NTL这个C++库，并采用了GMP加速。
+
+下面我们按照模块对云搜索正确性的快速验证系统进行介绍。
 
 \myfig{framework.eps}{3.5in}{系统的整体框架 }{des:structure}{Structure of system}
 
