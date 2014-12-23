@@ -100,6 +100,68 @@ $au + bv = 1, d = g^{-b}\ mod\ n, u = \prod_{x \in X} x, v = \prod_{y \in Y} y$
 \subsection{验证证明}
 这一步在用户本地进行。用户收到了云端返回的搜索结果和结果证明之后，首先，为了防止第三方伪造信息，用户要验证该结果的签名是不是就是云服务的签名。然后，用户使用等式\ref{eq:vw}来验证正确性证明。最后，用户使用等式\ref{eq:nvw}来验证完整性证明。这几个验证都通过的话，就说明搜索结果是正确的。
 
+\section{一种基于加密哈希的查询验证方式}
+哈希算法由于其有着不可逆性的特点，在加密和安全领域有着广泛的使用。加密哈希(Cryptographic hash)\cite{CHash}TODO。
+\myfig{chash.eps}{3.5in}{一种数据委托模型}{chash}{Database Outsourcing Overview}
+文章\cite{sion2005query}中提出了一种基于加密哈希的查询验证方式。如图\ref{fig:chash}中所示，数据拥有者Alice把他的数据委托给数据服务商Bob来进行管理。Alice对数据进行的任何操作都是通过数据服务商提供的接口进行的，因此Alice无法得知数据服务商的内部操作是否是正确执行的。
+
+考虑这样一个场景，Alice发送了b个查询 $\mathbb{Q} = \{Q_1, Q_2, ... ,Q_b\}$给Bob。
+Bob收到这个查询之后，执行了查询过程，然后给Alice返回了结果$\{\rho(Q_1), \rho(Q_2), ..., \rho(Q_b)\}$。
+
+对于一个恶意的服务商，Bob可能为了节省自己的计算资源，随意的伪造了查询结果，或者只是计算了部分的查询。
+
+参考了ringers\cite{golle2001uncheatable}的设计思路，作者提出了使用Challenge-Token来验证Bob的返回结果。
+
+\textbf{Challenge-Tokens} 对每一批查询$\mathbb{Q} = \{Q_1, Q_2, ... ,Q_b\}$, 数据拥有着随机选择一个只有自己知道的数 $x \in [1, b]$，同时选择一个一次性的随机数$\epsilon$，然后用他们计算出一个Challege Token:
+\begin{equation} C(\mathbb{Q}, x, \epsilon) = \{H(\epsilon \parallel \rho(Q_x)), \epsilon\}\end{equation}
+这里，$\parallel$表示按位连接，H是一个单向加密哈希函数。
+
+也就是说，数据拥有着在发送查询前，先随机挑选了一个查询，然后在本地计算出查询结果，然后使用加密哈希函数对该结果以及一个随机值进行计算，计算出一个无法进行逆运算的值。
+在发送查询的时候，数据拥有者把Challenge-Token值、随机数$\epsilon$值和$\mathbb{Q}$一起发送给服务商，并要求服务商在返回查询结果的同时，返回这个Challenge-Token值是由那个子查询计算得出的，也就是x值。
+
+当服务端收到这个请求时，由于单向加密哈希的不可逆性，服务端无法直接从Challenge-Token值中计算出x值。为了返回正确的x值，服务端只能对数据拥有着发来的查询进行一个一个的执行，然后对这些查询结果进行同样的单向哈希计算。这样对于每一个查询，服务商就都计算出了一个Token，然后数据拥有者发来的Challenge-Token去一一比较，就可以找出这个Challenge-Token是哪一个查询计算出来的。
+
+在数据拥有着收到了服务商返回的查询结果$\rho(\mathbb{Q}) = \{\rho(Q_1), \rho(Q_2), ..., \rho(Q_b)\}$和相应查询编号$x^\prime$(也就是对应得x值)。数据拥有者检查($x^\prime = x$)是否成立。如果成立，说明统计意义上来讲，服务商是执行了正确的查询的。这是因为服务商能提供正确的x值，要么是对计算Challenge-Token用到的单向加密哈希进行了逆运算(这是不可能的)，要么就是执行了这一批查询，然后再结果中找出哪一个符合这个Challenge-Token。
+
+在计算Challenge-Token的时候，这里用到了一个随机数$\epsilon$。这是因为对于一个比较智能的服务商，在没有随机数的情况下，它可以记住每次出现的Challenge-Token。如果有足够的存储空间，服务商就可以把之前遇到的Challenge-Token和对于的查询都记下来，比如存成一个便于查询的哈希表。随着服务商存储下来的Challenge-Token越来越多，那么遇到新的查询的时候，服务商就可以直接在哈希表里面找这个查询的Challenge-Token，而不需要真的去进行查询计算了。也就是说，数据拥有着恰好使用了同一个Challenge-Token两次，那么第二次的时候，服务商就可以之间返回对应的x值，而不需要进行查询计算了。而当生成Challenge-Token的时候加上了一个唯一的随机数时，就算是同一个查询，它们的Challenge-Token还和这个随机数有关，这基本上是不会相同了。这样，服务商计算记录下来遇到过的Challenge-Token也没有用了。
+
+上面提到了，这个方法提供的一个统计意义上的保证，那么服务商有多少的概率可以成功的欺骗数据拥有者呢？如果服务商采用部分计算的方式，比如只计算其中的$0 \le w < b$个查询，然后在这些查询里面试着找出那个与Challenge-Token对应的那个。如果在这个w个查询中，那个对应的查询没有找到，服务商就简单的在剩下的那些查询里面随机猜测一个。那么服务商返回正确的x值得概率为:
+\begin{equation} P(w) = \frac{w}{b} + (1 - \frac{w}{b})\frac{1}{b-w} = \frac{w + 1}{b} \end{equation}
+
+这个一个关于w的线性函数，这说明服务商欺骗成功的概率和他所进行的查询是成正比的。也就是说，服务商想要干很少的活，那么欺骗成功的概率就变低；服务商想要欺骗成功的概率变高，那么他就需要干更多的活。对于服务商来说，是没有一种两全其美的办法。而且在多次查询之后，每次欺骗全都成功的概率会随着查询次数的增加而减少。在有足够多的查询次数的情况下，服务商每次都成功欺骗，而不被数据拥有者发现的概率可以任意的小。
+
+但是我们可以发现，只是简单的使用客户端验证的方法，就能取得差不多的保证概率。比如说，对于一次总共有b个查询的请求，数据拥有着不再计算出一个Challenge-Token，而是在服务商返回的结果里面随机选择一个，然后客户端进行一次这个查询，最后比较下自己计算的结果和服务商返回的结果是否一致。相比较Challenge-Token的方式，这个客户端验证的方式有着差不多的网络带宽消耗，却减少了服务端计算Token的过程，而且客户端的计算量也没有增加(计算Challenge-Token也要进行一次本地搜索)。在客户端验证方式下，服务商在只完成了$0 \le w < b$个查询的情况下成功不被客户发现的概率为：
+\begin{equation} P_c(w) = \frac{w}{b} \end{equation}
+
+这个概率和使用Challenge-Token的方式的概率P(w)基本是一致的。那么为什么还要采用这个更加费计算的Challenge-Token方式呢？
+
+文章中先把Challenge-Token方式做了个扩展，在原来只使用一个Challenge-Token的基础上改为使用r > 1个Challenge-Token。那么服务商在只计算w < b个查询的情况下，成功返回r个正确的查询编号从而成功骗过客户端的概率是多少呢？假设服务商的策略是在完成的w个查询里面找对应的Challenge-Token，有多少找多少。对于没有找到的Challenge-Token，它就在剩下的那些查询里随机的猜。这样，服务商在w个查询里面成功找到x个Challenge-Token的概率为:
+\begin{equation} P_0(b, w, r, x) = \frac{\binom{r}{x} \times \binom{b-r}{w-x}}{\binom{b}{w}} \end{equation}
+这里，$x \in [max(0, w+r-b, min(r,w)]$。还有，在b个查询里面随机猜对r个的概率为:
+\begin{equation} P_1(b,r) = \frac{1}{\binom{b}{r}} \end{equation}
+最后，服务商成功在计算w<b个查询的情况下，成功骗过客户端的概率为:
+\begin{equation} P(w,r) = \sum_{i=max(0,w+r-b)}^{min(r,w)} [P_0(b,w,r,i) \times P_1(b-w,r-i)] = \frac{1}{\binom{b}{r}}\sum_{i=max(0,w+r-b)}^{min(r,w)}\binom{w}{i} \end{equation}
+
+\myfig{pro.eps}{3.5in}{b = 20情况下的一些P(w,r)值}{pro}{The behavior of P(w,r) with b = 20}
+如图\ref{fig:pro}所示，在增加了Challenge-Token之后，服务商要达到同样的欺骗成功概率就需要执行多的多的查询。比如说，对于20个查询和3个Challenge-Token的情况，如果需要达到40\%的欺骗成功率，那么服务商至少需要执行其中的14个查询。而当只有一个Challenge-Token时，它只需要执行一个查询。
+
+当然，客户端检测的方式也同样可以使用增加检测的查询数目来降低被服务商欺骗成功的概率。架势客户端选择了$1 < r \le w$个查询结果进行检查，那么被服务商成功欺骗的概率为：
+\begin{equation} P_c(w,r) = \frac{\binom{w}{r}}{\binom{b}{r}} \end{equation}
+与P(w,r)比较可以得出，$P_c(w,r) \le P(w,r)$，也就是说多个Challenge-Token的方式也没有比客户端方式有着更高的正确性保证。而且Challenge-Token方式还有一个问题，就是服务商可以采用依次进行查询，查询一次就找一次Challenge-Token，直到所有Challenge-Token都被找到，然后对剩下的查询不再计算，而是随机编造结果。这样的话，服务商就可以减少计算力，且每次都能骗过数据拥有者。
+
+这些问题可以通过增加假Challenge-Token来解决。之前的情况下服务商都是确切知道有多少个Challenge-Token的，这给了它很好的猜测基础。我们可以通过已经假Challenge-Token来避免这种情况，从今降低服务商欺骗成功的概率。
+
+\textbf{假Challenge-Token} 一个随机伪造的和Challenge-Token有同样格式的数字，但是却不是真实的从查询结果计算的。它会和Challenge-Token一起发给服务商，要求服务商在返回时对于Challenge-Token要返回对应的查询编号，对于假Challenge-Token则返回空查询。
+
+增加假Challenge-Token之后，服务商在执行完所有查询之前，就不能知道那些是假Challenge-Token。这样，如果服务商想百分百保证不被发现欺骗，那么它就只能执行全部的查询而无法想之前一样偷懒只进行部分计算。
+
+在增加了假Challenge-Token之后，服务商如果还是要在只计算w < b个查询的情况下伪造结果试图骗过数据拥有者，那么需要猜测有哪些Challenge-Token，成功欺骗的概率为:
+\begin{equation}P^\prime(w,r,f) = \frac{1}{\binom{b}{r}}\sum_{i=max(0,w+r-b)}^{min(r,w)}[\frac{\binom{w}{i}}{min(b-w,max(1,r+f-i))}]\end{equation}
+
+\myfig{allpro.eps}{3.5in}{几种方式的概率比较}{allpro}{The behavior of different method}
+
+图\ref{fig:allpro}中给出了前面提到的几种方式的概率比较。从图中我们可以看出，在增加了2个假Challenge-Token的时候，服务商成功欺骗的概率相比$P_c(w,r=2)$已经降低了一半，而且通过再增加假Challenge-Token，可以进一步降低这个概率。而且增加假Challenge-Token的只需要随机生成一个数据，代价是很小的。
+
 \section{本章小结}
 本章介绍了本课题相关的已有研究。主要是介绍了用于集合元素存在性验证的RSA Accumulator和基于RSA Accumulator的一套验证搜索机制。RSA Accumulator是将集合的每一个元素按照一定的函数进行得到的一个值。这个对于集合可以说是想指纹一样独一无二。在Accumulator的基础上，Membership Witness和Nonmembership Witness提供了集合元素存在性的验证功能。通过Membership Witness和Nonmembership Witness, 我们就可以进行集合求交集运算的结果证明。进一步，通过将文档搜索的过程转化为集合求交集的过程，我们就可以进行云搜索的结果证明。
 
