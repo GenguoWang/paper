@@ -108,7 +108,7 @@ Prime Manager这个模块的作用是使用事先计算好的质数表示来加�
 
 
 \subsection{树状结构的计算: Worker任务分配机制}
-\myfig{job.eps}{3.5in}{Worker任务分配机制的框架}{worker}{Framework of worker job dispatcher}
+\myfig{job.eps}{4.5in}{Worker任务分配机制的框架}{worker}{Framework of worker job dispatcher}
 在树状结构证明的计算中，我们有很多小集合的证明可以并行计算。为了能够方便的使用多个进程多个机器来计算这些并行任务，我们设计了这个Worker任务分配机制。如图\ref{fig:worker}所示，Worker任务分配机制的主要工作流程是Manage Processor从任务拥有者接受一系列任务，然后把任务分派给各个Worker Processor去执行。最后Manage Processor把Worker Processor的执行结果收集汇总，然后返回给任务拥有者。
 
 \begin{figure}[htb]
@@ -124,7 +124,6 @@ public:
 \bicaption[fig:job]{图索引}{Job的接口}{Fig}{Job's Interface}
 \end{figure}
 
-为了方便使用，在我们这个任务分配机制中的任务都需要实现如图\ref{fig:job}所示的接口。各个Processor会使用writeToStream把Job序列号到数据流进行传递，使用readFromStream接口从数据流里面反序列化出Job，使用run接口来执行这个Job得到结果。
 
 \begin{figure}[htb]
 \begin{lstlisting}[language=C++] 
@@ -137,11 +136,8 @@ public:
         while(true)
         {
             int inputState = acceptInput(input);
-            if(input.length()>0)
-            {
-                std::string result = work(input);
-                outputResult(result);
-            }
+            std::string result = work(input);
+            outputResult(result);
         }
     }
     virtual std::string work(std::string input)=0;
@@ -149,31 +145,21 @@ public:
 \end{lstlisting}
 \bicaption[fig:processor]{图索引}{Processor的接口}{Fig}{Processor's Interface}
 \end{figure}
-每一个计算单元叫做Processor，它的工作模式是不断的从它的输入端接受输入，然后调用work接口来计算出结果，最后把结果输出到输出端。要进行正常的工作，每一类的work需要实现自己的work接口。
-
-在我们这个任务分配机制中，有两类Processor，一种是Manage Processor，另一种是Worker Processor。
-Manage Processor的work接口做的是从输入字符串中反序列化出一些列任务，然后把任务分派给它的Work Processor，等每个Worker Processor都返回了任务结果之后，它把所有结果汇总当作返回值返回。
-WorkerProcessor的work接口做的事就更简单了。它从自己的输入字符串里面反序列化出一些列任务，然后依次计算这些任务，最后把任务结果返回。
 \begin{figure}[htb]
 \begin{lstlisting}[language=C++] 
 class ProofCalcJob:public JobInterface
 {
 public:
-    void readFromStream(std::istream &in){...}
-    void writeToStream(std::ostream &out){...}
     virtual std::string run()
     {
         ostringstream oStr;
-        oStr << RSAAccumulatorService::getRSAAccumulator()->publicGenSubsetProof(primeAll, primeSubset);
+        oStr << RSAAccumulator::getRSAAccumulator()->genWitness(allSet, subset);
         return oStr.str();
     }
 }
 \end{lstlisting}
 \bicaption[fig:cjob]{图索引}{计算证明的Job}{Fig}{Job for computing proof}
 \end{figure}
-
-要使用这个框架，我们需要实现一个任务类。
-图\ref{fig:cjob}给了用来计算Membership Witness的任务类的实现。这里，我们把序列化和反序列化的实现给省略，就展示了run这个接口做的事：对任务中的子集和全集调用一个生成Membership Witness的函数，然后以字符串的形式返回结果。
 
 \begin{figure}[htb]
 \begin{lstlisting}[language=C++] 
@@ -194,6 +180,18 @@ tempProofs = client.calcProof(workerUrl,jobList);
 \end{lstlisting}
 \bicaption[fig:wjob]{图索引}{使用Worker机制}{Fig}{Using Worker framework}
 \end{figure}
+
+为了方便使用，在我们这个任务分配机制中的任务都需要实现如图\ref{fig:job}所示的接口。各个Processor会使用writeToStream把Job序列号到数据流进行传递，使用readFromStream接口从数据流里面反序列化出Job，使用run接口来执行这个Job得到结果。
+
+每一个计算单元叫做Processor，它的工作模式是不断的从它的输入端接受输入，然后调用work接口来计算出结果，最后把结果输出到输出端。要进行正常的工作，每一类的work需要实现自己的work接口。
+
+在我们这个任务分配机制中，有两类Processor，一种是Manage Processor，另一种是Worker Processor。
+Manage Processor的work接口做的是从输入字符串中反序列化出一些列任务，然后把任务分派给它的Work Processor，等每个Worker Processor都返回了任务结果之后，它把所有结果汇总当作返回值返回。
+WorkerProcessor的work接口做的事就更简单了。它从自己的输入字符串里面反序列化出一些列任务，然后依次计算这些任务，最后把任务结果返回。
+
+要使用这个框架，我们需要实现一个任务类。
+图\ref{fig:cjob}给了用来计算Membership Witness的任务类的实现。这里，我们把序列化和反序列化的实现给省略，就展示了run这个接口做的事：对任务中的子集和全集调用一个生成Membership Witness的函数，然后以字符串的形式返回结果。
+
 
 图\ref{fig:wjob}展示了如何使用Worker任务分配机制：先是生成一系列的任务ProofCalcJob，然后调用一个辅助类ProofCalcClient的calcProof函数得到计算结果。calcProof函数的作用是根据作为模板参数的任务类型和任务结果类型，进行任务的序列化然后发送到Worker任务分配机制去处理，最后把处理结果反序列化成任务结果，这里就不再做展开讨论。
 \subsection{树状结构证明的权衡}
