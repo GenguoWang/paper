@@ -1,6 +1,6 @@
 \chapter{相关工作}
 \label{chap:relatedwork}
-在本章，我们介绍本课题用到或借鉴的一些相关的工作。主要的介绍了我们系统使用的云搜索验证机制。该机制使用了RSA Accumulator\cite{goodrich2002efficient,verifiableindex}来进行集合元素的存在性验证。接下来，我们先介绍RSA Accumulator，然后再介绍下基于RSA Accumulator的验证机制。最后介绍了一种基于单向加密哈希的查询验证机制。
+在本章，我们介绍本课题用到或借鉴的一些相关的工作。首先我们介绍了经常用于加密安全领域的RSA Accumulator\cite{goodrich2002efficient,verifiableindex}以及与之相关的用于集合元素存在性验证的Membership Witness和Nonmembership Witness。其次，我们介绍了使用RSA Accumulator和Membership Witness、Nonmembership Witness来验证集合求交集计算正确性验证的方法。最后我们介绍了一种基于单向加密哈希的查询验证机制。该机制通过向云服务商发送Challenge-Token的方式，使得云服务商不得不进行真实的查询计算才能保证通过用户的验证。该机制提供的是一定概率上的正确性保证。
 
 \section{RSA Accumulator}
 在文章\cite{benaloh1994one}中，Benaloh和de Mare首次提出了One-way Accumulator的概念。One-way Accumulator主要是用来将一个集合的所有元素累积到一个比较小的值，同时该值保有一定了原集合的信息，可以用来做一些集合属性的验证。
@@ -23,12 +23,12 @@ RSA Accumulator是One-way Accumulator\cite{benaloh1994one}的一种直观的扩�
 
 以上说的Membership Witness和Nonmembership Witness都是针对单个元素的，如果需要一次验证多个元素，那么我就就需要计算多个Witness并进行多次验证，这显得非常效率底下。为了处理多个元素的情况，以上的方法被稍微进行一些如下扩展，使之可以用作多个元素的Membership Witness和Nonmembership Witness。
 
-我们取X的子集$X^{\prime} = \{x_{i_1}, x_{i_2}, ... , x_{i_{|X^\prime}}\}$, 那么$X_\prime \subseteq X$的Membership Witness为:
+我们取X的子集$X^{\prime} = \{x_{i_1}, x_{i_2}, ... , x_{i_{|X^\prime}}\}$, 那么$X^\prime \subseteq X$的Membership Witness为:
 \begin{equation} \label{eq:w} c_{X^\prime} = g^{\prod_{x \in X - X^\prime} x}\ mod\ n \end{equation}
 
-有了这个Membership Witness, 我们如果要证明$X_\prime \subseteq X$ 只需要验证下式是否成立:
+有了这个Membership Witness, 我们如果要证明$X^\prime \subseteq X$ 只需要验证下式是否成立:
 \begin{equation} \label{eq:vw} c_{X^\prime}^{\prod_{x \in X^\prime} x} = c\ mod\ n\end{equation}
-从式子\ref{eq:vw}可以看出，对于$X_\prime \subseteq X$的验证，我们所需要关于集合X的信息只要知道它的Accumulator c就行了，而不用知道它包含哪些元素。
+从式子\ref{eq:vw}可以看出，对于$X^\prime \subseteq X$的验证，我们所需要关于集合X的信息只要知道它的Accumulator c就行了，而不用知道它包含哪些元素。
 
 我们另去集合 $Y = \{y_1, y_2, ... , y_{|Y|}\}$，它的每个元素$y_i$都是质数，且 $Y \bigcap X = \phi$。那么集合Y相对于X的Nonmembership Witness是这样一个二元组(a, d) 其中
 $au + bv = 1, d = g^{-b}\ mod\ n, u = \prod_{x \in X} x, v = \prod_{y \in Y} y$
@@ -41,64 +41,14 @@ $au + bv = 1, d = g^{-b}\ mod\ n, u = \prod_{x \in X} x, v = \prod_{y \in Y} y$
 
 但是这里还存在一个问题，就是计算X可能没有包含全部的交集元素。这个时候X也满足同时属于$X_1, X_2$，可以通过用户的验证，但却不是正确的结果。这说明仅仅用正确性证明是不够的。为了处理这种只返回部分结果的情况，我们需要一个完整性证明来保证集合X包含集合$X_1$，$X_2$的交集的全部元素。也就是说($X_1 - X$)不包含任何属于集合$X_2$的元素。这样的完整性证明有以下几个部分组成:
 \begin{itemize}
-\item 集合$X_\prime = X_1 - X$
-\item $X_\prime$属于$X_1$的Membership Witness
-\item $X_prime$不包含任何属于$X_2$的元素的Nonmembership Witness
+\item 集合$X^\prime = X_1 - X$
+\item $X^\prime$属于$X_1$的Membership Witness
+\item $X^\prime$不包含任何属于$X_2$的元素的Nonmembership Witness
 \end{itemize}
 
-用户可以通过等式\ref{eq:vnw}来验证Nonmembership Witness。在验证了正确性证明和完整性证明后，用户需要验证$X + X_\prime = X_1$来保证$X_prime$的正确性。这个验证可以通过计算$X + X_\prime$这个集合的Accumulator，然后与集合$X_1$的Accumulator进行比较。如果相等，则说明$X + X_\prime = X_1$成立。
+用户可以通过等式\ref{eq:vnw}来验证Nonmembership Witness。在验证了正确性证明和完整性证明后，用户需要验证$X + X^\prime = X_1$来保证$X^\prime$的正确性。这个验证可以通过计算$X + X^\prime$这个集合的Accumulator，然后与集合$X_1$的Accumulator进行比较。如果相等，则说明$X + X^\prime = X_1$成立。
 
-上面我们讲了两个集合交集的证明，简单扩展性就可以用于多个集合。对于m个集合的交集 $X = X_1 \bigcap X_2 \bigcap ... \bigcap X_m$。正确性证明还是和两个集合的情况一样，只是变成需要m个Membership Witness。至于完整性证明的话，我们还是选$X_\prime = X_1 - X$，那么我们需要证明$X_\prime$的每个元素至少不属于$X_2, X_3,...,X_m$中的一个。也就是说，我们需要对$X_\prime$的每个元素计算一个Nonmembership Witness。考虑到每个集合含有元素的多少可能会有较大的差异，我们可以选择含有元素最少的集合代替$X_1$来计算$X_\prime$，这样得到的$X_\prime$也是含有最少的元素数目，这样我们需要的Nonmembership Witness的数目也是最少的。
-
-\section{验证机制}
-为了应用上面的Accumulator和Witness到搜索验证上，我们需要有一个把文档编号啊，Term等元素映射到质数表示的方法。幸运的是，关于质数表示的问题，文章\cite{gennaro1999secure,goodrich2002efficient}给出了一个可用的方法。该方法可以把任意k位的元素映射到3k位的质数空间上。文章\cite{verifiableindex}中提出的验证机制的主要思路是把文档搜索的过程归结到集合之间求交集的过程，然后使用上一小节描述的RSA Accumulator以及Membership Witness、Nonmembership Witness来对集合求交集的结果进行验证。
-
-首先，作为数据拥有着，用户需要自己选择或者随机生成一组安全的质数p和q，然后选择n=pq的一个随机二次剩余模数g。其中的n和g，用户会告诉云服务商。而p和q则需要自行保密。同时，用户需要将质数表示的生成器也告诉云服务商。
-
-这里，用户有个小的技巧，用户可以使用p和q来加速Accumulator的计算。由于p和q都是与g互质的，由欧拉定理可知$g^\phi(n)\ mod\ n = 1$。于是我们可以得到$g^x\ mod\ n  = g^{x mod \phi(n)}\ mod\ ni$。这里$\phi(n)$为欧拉函数，$\phi(n) = (p-1)(q-1)$。
-
-整个验证机制可以分为建立可验证的索引、云端检索、验证证明这三个步骤。下面的内容对这三个步骤分别进行介绍。
-
-\subsection{可验证索引}
-在将数据上传到云服务商前，用户首先需要对他的数据进行建立可验证索引操作。可验证索引是Term $t_i$到一个集合和两个RSA Accumulator的映射：
-\begin{itemize}
-\item \textbf{集合(也就是倒排索引).} 该集合对于着一般的倒排索引中的集合。该集合中的每个元素都表示该Term在文档中的特征值。在这里，我们使用一个二元组(docID, w)来表示集合中的元素，其中docID表示文档的编号，w表示这个Term $t_i$在该文档中的权值。这个权值可以使用简单的TF值或者TF-IDF值。如果需要更优化的排名，那么可以使用一个向量权值\cite{qin2010letor}之类的效果更好的权值。在这个验证机制里面，用户可以自行选择用什么样的权值。
-\item \textbf{RSA Accumulator.} 对于每个Term，用户需要计算两个Accumulator，一个是针对索引里面的每个二元组，还有一个针对这些二元组里面的全部文档编号。针对文档编号的Accumulator是用来作完整性证明的，它不需要包含权值信息。仅使用文档编号可以是计算更加迅速。相比较与云端，用户可以更加高效的计算这些Accumulator(上面提到的，利用欧拉定理的方法)。
-\end{itemize}
-
-为了保证索引和Accumulator的正确性，建立可验证索引只能在用户可信任的环境下进行。在索引建立完成后， 用户可以对可验证索引的每一部分进行签名，然后再上传到云端。之后用户如果觉得索引太占用空间，就可以把本地的这份给删除了。后面用户有什么需要用到索引的情况，用户可以直接向云端发出请求，让它返回需要的索引的内容，比如某个Term的倒排索引、Accumulator，然后使用签名验证云端返回的内容。
-
-建立可验证索引这个过程用户只需要做一遍。之后如果有数据更新，用户只需要进行动态的更新就行，而不需要重新进行整个建立索引过程。
-
-\subsection{云端检索和证明生成}
-在接到了用户提交的一个签名了的搜索请求后，云服务器按照以下步骤进行这一次搜索操作：
-\begin{enumerate}
-\item 在可验证索引里面查询每个关键词对应的索引数据
-\item 对索引数据进行求交集操作
-\item 对这个交集计算证明
-\item 对结果和证明进行签名操作，然后返回给用户
-\end{enumerate}
-
-每个关键词的索引数据的交集包含着那些符合全部关键词的文档。
-我们以一个两个关键词的查询为例，比方说这个两个关键词为$t_i$、$t_j$,它们对应的可验证的索引数据中的集合为$I_i$，$I_j$，他们在可验证索引中对应的文档集合为$D_i$、$D_j$。那么搜索的结果是同时包含$t_i$、$t_j$的文档集合，也就是两个文档集合的交集$D = D_i \bigcap D_j$。
-
-令$R_i$，$R_j$分别为可验证索引$I_i$，$I_j$中的docID属于集合D的二元组(docID,w)的集合。那么$R_i$和$R_j$一起就组成了这次搜索的结果，它们既包含了符合要求的文档，也包含了搜索关键词在这些文档中的权值。搜索结果的证明由两个部分组成，一个是正确性证明，还一个是完整性证明。
-
-搜索结果的正确性证明是为了证明搜索结果中的二元组都是符合要求的。它由结果中每个关键词的二元组集合属于可验证索引的Membership Witness组成。对于上面那个两个关键词的例子，正确性证明包含:1. 关键词$t_i$的二元组$R_i$是集合$I_i$的子集的Membership Witness, 2. 关键词$t_j$的二元组$R_j$是集合$I_j$的子集的Membership Witness。这两个Witness我们都可以使用公式\ref{eq:w}来计算。正确性证明占用的空间大小和关键词的个数成正比，空间复杂度为O(Q)。
-
-搜索结果的完整性证明是为了证明没有别的二元组符合搜索要求。需要注意的是，完整性证明是不需要考虑二元组里面的权值的，因为搜索结果中的文档是包含每个关键词，因此只要一个文档不包含某一个关键词，那么它就不符合搜索要求，而与权值无关。假设在上面这个例子中，$|I_i| \le |I_j|$，那么这个完整性证明就包含$(I_i - R_i)$中出现的任何一个文档都不在二元组集合$I_j$中出现。具体来说，这个完整性证明包含以下部分:
-\begin{itemize}
-\item 集合$(D_i - D)$, 记为$D_\prime$
-\item 集合$D_\prime$是$D_i$的子集的Membership Witness
-\item 集合$D_\prime$的任何一个元素都不属于$D_j$的Nonmembership Witness
-\end{itemize}
-
-通常来说，对于一个包含Q个关键词的查询，完整性证明的第三部分最多包含Q - 1个Nonmembership Witness。这个是因为，我们要证明$(D_i - D)$中的任何一个元素不属于其余Q-1个集合中的一个。这样其余Q-1个集合，最多的话也就是每个集合一个Nonmembership Witness。由此，我们可以得到，对于一个含有Q个关键词的查询，它的完整性证明的空间复杂度为$O(Q) + O(|D_i|)$。为了尽可能的节省空间，我们总是选择数目最小的那个集合作为$S_i$。
-
-按照上面的思路，我们计算完整性证明的过程是这样的：首先，为了生成的证明的大小最小，我们在每一个关键词的可验证索引的集合里面选出含有元素数目最少的那个作为$D_i$来计算完整性证明。然后我们计算$D_\prime$中的每个元素在任意一个Q - 1个集合里面不出现的Nonmembership Witness。
-
-\subsection{验证证明}
-这一步在用户本地进行。用户收到了云端返回的搜索结果和结果证明之后，首先，为了防止第三方伪造信息，用户要验证该结果的签名是不是就是云服务的签名。然后，用户使用等式\ref{eq:vw}来验证正确性证明。最后，用户使用等式\ref{eq:nvw}来验证完整性证明。这几个验证都通过的话，就说明搜索结果是正确的。
+上面我们讲了两个集合交集的证明，简单扩展性就可以用于多个集合。对于m个集合的交集 $X = X_1 \bigcap X_2 \bigcap ... \bigcap X_m$。正确性证明还是和两个集合的情况一样，只是变成需要m个Membership Witness。至于完整性证明的话，我们还是选$X^\prime = X_1 - X$，那么我们需要证明$X^\prime$的每个元素至少不属于$X_2, X_3,...,X_m$中的一个。也就是说，我们需要对$X^\prime$的每个元素计算一个Nonmembership Witness。考虑到每个集合含有元素的多少可能会有较大的差异，我们可以选择含有元素最少的集合代替$X_1$来计算$X^\prime$，这样得到的$X^\prime$也是含有最少的元素数目，这样我们需要的Nonmembership Witness的数目也是最少的。
 
 \section{一种基于加密哈希的查询验证方式}
 哈希算法是一种将任意长度的数据映射到固定长度数据的一种算法，而且输入数据的细微改变都会导致输出的巨大差异。单向加密哈希(One-way Cryptographic hash)\cite{CHash}是指哈希算法里面被认为无法进行逆运算的那一类，也就是说无法从给定的哈希值中计算出原来的输入数据是什么。由于这种不可逆性，单向加密哈希很多信息安全领域里众多应用，比如数字签名、信息认证以及各类形式的认证。
@@ -166,6 +116,6 @@ Bob收到这个查询之后，执行了查询过程，然后给Alice返回了结
 从前面的介绍我们可以看出，这种基于单向加密哈希的查询验证方法有着简单的原理，可以方便的实现的。而且相比于客户端验证方式，该方法有着更高的验证成功率。文章\cite{sion2005query}中的实验评估数据也表明这个方法给查询系统带来的额外负担是很低的。但是该方法的缺点也很明显，一是，不能百分百的完全保证正确性；二是，只能是几个查询一起进行，不能进行单个的查询；最后不能防止云服务商在执行全部查询之后还恶意的返回错误结果。
 
 \section{本章小结}
-本章介绍了本课题相关的已有研究。主要是介绍了用于集合元素存在性验证的RSA Accumulator和基于RSA Accumulator的一套验证搜索机制。RSA Accumulator是将集合的每一个元素按照一定的函数进行得到的一个值。这个对于集合可以说是想指纹一样独一无二。在Accumulator的基础上，Membership Witness和Nonmembership Witness提供了集合元素存在性的验证功能。通过Membership Witness和Nonmembership Witness, 我们就可以进行集合求交集运算的结果证明。进一步，通过将文档搜索的过程转化为集合求交集的过程，我们就可以进行云搜索的结果证明。
-本章还介绍了一种基于单向加密哈希的查询验证方法。该方法的主要思路是在像云服务商提交查询前先对某一个查询计算结果，并对该结果加密。然后再发送查询的时候，把加密值也发送给云服务商，并要求云服务商返回这个加密值是哪个查询计算出来的。这样，云服务商就只能进行全部查询才能知道这个加密值是那个查询的。
+本章介绍了本课题相关的已有研究。主要是介绍了用于集合元素存在性验证的RSA Accumulator和Membership Witness、Nonmembership Witness。RSA Accumulator是将集合的每一个元素按照一定的函数进行得到的一个值。这个对于集合可以说是想指纹一样独一无二。在Accumulator的基础上，Membership Witness和Nonmembership Witness可以提供了集合元素存在性和不存在性的验证功能。通过Membership Witness和Nonmembership Witness, 我们介绍一种对集合求交集运算正确性的结果方法。该方法主要是将求交集的证明分为正确性证明和完整性证明两部分。然后使用Membership Witness来进行正确性证明，使用Nonmembership Witness来进行完整性证明。
+本章还介绍了一种基于单向加密哈希的查询验证方法。该方法的主要思路是在像云服务商提交查询前先对某一个查询计算结果，并对该结果加密。然后再发送查询的时候，把加密值也发送给云服务商，并要求云服务商返回这个加密值是哪个查询计算出来的。这样，云服务商就只能进行全部查询才能知道这个加密值是那个查询的。该方法虽然不能百分百的保证云服务商的正确性，却可以让用户在只需要付出很小的额外负担下，很大概率保证不被云服务商欺骗。
 

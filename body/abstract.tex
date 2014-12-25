@@ -14,18 +14,18 @@
 怎么保证云搜索的结果是正确的这个问题也变得重要起来。
 在这个问题上已经有不少的相关工作，但是一个高效的高扩展性的系统到现在也没有推广开来。
 
-我们在参照了一些已有的验证系统，进行了一些改进，
-设计并实现了一个云搜索正确性的快速验证系统。
+在研究了一些现有的验证方案之后，我们提出并设计实现了一个更加高效实用的云搜索正确性的快速验证系统。
+首先，我们设计了一套基于RSA Accumulator的验证机制并在这个验证机制上设计实现了一个云搜索验证系统。
 该系统采用了分模块的设计方法，每个模块都是一个单独的进程，
 模块之前可以独立部署，使得整个系统有个很高的扩展性和易维护性。
-为了解决在搜索的关键词文档集合比较大时，正确性证明生成速度慢的问题，
+其次，为了解决在搜索的关键词文档集合比较大时，正确性证明生成速度慢的问题，
 我们设计的一种树状结构证明，通过将大的集合拆分成多个小的集合按照树状组织起来，来减少计算量，提高并行计算程度，使得证明的生成速度得到了提高。
-我们还提出了一个讲树状结构证明用于完整性证明生成的思路，可以用于提高完整性证明的生成速度。
-为了方便的进行树状结构证明中多个同类任务的并行计算，我们实现了一套轻量级的并行计算框架，该框架可以方便进行任务的分派以及配置使用机器的数量。
-考虑到有些计算效率优先而正确性不用完全保证的情况，我们提出了一种基于采样的验证方式，使得用户可以根据需要在计算效率和正确性保证程度之间做出权衡。
+我们还提出了一个将树状结构证明用于完整性证明生成的思路，可以用于提高完整性证明的生成速度。
+同时，为了方便的进行树状结构证明中多个同类任务的并行计算，我们实现了一套轻量级的并行计算框架，该框架可以方便进行任务的分派以及配置使用机器的数量。
+最后，考虑到有些计算效率优先而正确性不用完全保证的情况，我们提出了一种基于采样的验证方式，使得用户可以根据需要在计算效率和正确性保证程度之间做出权衡。
 
 我们使用了两个测试数据集进行了实验评估，
-实验结果表明通过使用树状结构证明，我们的系统在计算正确性证明上有着评价2.5倍的速度提升。
+实验结果表明通过使用树状结构证明，我们的系统在计算正确性证明上有着平均2.5倍的速度提升。
 在整个搜索和证明生成的速度上，我们的系统相比较于原来的计算方法有着平均为2倍的提升，
 尤其是对于那些本来处理比较慢的情况，比如原来要10s左右的查询，
 我们的系统可以达到4倍左右的提升。
@@ -43,7 +43,12 @@
 	How to proof the correctness of the searching result is an problem coming with this feature.
 	Previous work has proposed many useful theories on verifiable computing, such as probabilistically checkable proofs, authHashtable, but an efficient and scalable system is rare.
 
-	We design and implement a fast proof generating system for verifying cloud search based on RSA accumulators, nonmembership witnesses. The system is system and scalable. Evaluation on real datasets shows that our system can speed up the proof generating compared to the raw method and our system can handle datasets with size up to 100GB.
+	In our research, first, We design and implement a fast proof generating system for verifying cloud search based on RSA accumulators, membership witnesses and nonmembership witnesses. We split our system into modules and every module is process that makes out system have high expansibility and maintainability. 
+	Then, in order to reduce the correctness proof generation time of large document set, we design and implement the tree-structure proof which splits the large set into multiple small sets to speed up the computing. We also present a method of using tree-structure to calculate integrity proof.
+	We implement a lightweight parallel computing framework which can easily use different number of computers to calculate the tree-structure proof.
+	Finally, we design a probabilistically checkable method based on sampling. This methed lets user can make tradeoff between performace and assurance level.
+
+    Experimental results show that by using the tree-structure proof the correctness proof generation speed has an average speedup of 2.5. For the overall performance, our system have a speedup of 2 compared to the straightforward way. Our system can handle dataset with a size of 100GB in our experimeental environment.
 
 	\englishkeywords{\large Cloud Computing, Verifiable Computing, Document Search}
 \end{englishabstract}
