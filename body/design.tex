@@ -76,9 +76,9 @@
 	ymax = 1.0,
 	legend entries={$p=0.1$, $p=0.2$, $p=0.3$}
 ]
-\addplot[blue,smooth,domain=0:50] { exp(x*ln(1-0.1) };
-\addplot[red,smooth,domain=0:50] {exp(x*ln(1-0.2))};
-\addplot[black,smooth,domain=0:50] { exp(x*ln(1-0.3) };
+\addplot[blue,smooth,solid, domain=0:50] { exp(x*ln(1-0.1) };
+\addplot[red,smooth,dotted, domain=0:50] {exp(x*ln(1-0.2))};
+\addplot[black,smooth,dashed, domain=0:50] { exp(x*ln(1-0.3) };
 \end{axis}
 \end{tikzpicture}
 }

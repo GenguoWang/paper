@@ -107,6 +107,96 @@
     \label{tab:verifying_time}
 \end{table}
 为了测试在提升了证明生成速度之后，我们的系统会不会对证明的验证速度有着不好的影响，我们使用Enron数据集进行了验证时间的测试。测试结果如表\ref{tab:verifying_time}中所示。从测试结果中，我们可以看出我们的系统的证明验证速度比直接计算有着大约10\%左右的降低，这个程度的降低相比较证明速度的提升是完全可以接受的。本系统验证速度降低的主要原因是使用了树状证明，正确性验证需要多验证一些Membership Witness。还有，这里的证明验证没有使用事先计算的质数，所以每次验证都要计算大量的质数表示，这导致了证明验证的时间和证明生成的时间都差不多了。我们可以让云端在返回搜索结果的同时返回签了名的相应的质数表示，这样用户在证明验证的时候就不需要再进行质数表示的计算了。当然，这样会增加返回结果的大小。对这里的权衡关系，本课题没有进行深入的研究。
+\section{基于采样的验证机制的性能和正确性保证}
+\begin{figure}[htb]
+\centerline{
+\begin{tikzpicture}
+\begin{axis}[
+    xlabel={$r$},
+	ylabel={$t(s)$},
+	yticklabel style={/pgf/number format/fixed,
+	    /pgf/number format/precision=1},
+	xticklabel={\pgfmathparse{\tick*100}\pgfmathprintnumber{\pgfmathresult}\%},
+	xticklabel style={/pgf/number format/fixed,
+	    /pgf/number format/precision=0},
+	xmin = 0,
+	xmax = 1.0,
+	ymin = 0,
+	%ymax = 1.0,
+]
+\addplot[blue,smooth,mark=*] coordinates 
+{ 
+(0, 0.0305)
+(0.1, 0.149)
+(0.2, 0.2515)
+(0.3, 0.369)
+(0.4, 0.4705)
+(0.5, 0.594)
+(0.6, 0.7075)
+(0.7, 0.808)
+(0.8, 0.9345)
+(0.9, 1.049)
+(1, 1.1555)
+};
+\addplot[black,densely dashed] coordinates
+{
+(0, 1.125)
+(1, 1.125)
+}[yshift=8pt]
+node[pos=0.2]{验证搜索时间}
+;
+\addplot[black,densely dashed] coordinates
+{
+(0, 0.03)
+(1, 0.03)
+}[yshift=8pt]
+node[pos=0.75]{非验证搜索时间}
+;
+\end{axis}
+\end{tikzpicture}
+}
+\bicaption[fig:rateTime]{图索引}{不同采样率下的平均搜索时间}{Fig}{Average search time on different sampling rates}
+\end{figure}
+
+在前面章节我们提出了一种基于采样的验证机制，使得用户可以在性能和正确性保证之间做出权衡。在这里，我们对该机制进行了性能的实验评估和正确性保证的测试。
+
+在基于采样的验证机制里面，验证搜索只是用来验证云服务商的正确性，非验证搜索才是用户真正需要的搜索请求，所以在这里我们把非验证搜索的数目称之为有效搜索数。
+这里我们令采样率r为验证搜索次数（也就是采样数）x和非验证搜索次数（也就是有效搜索数)n的比例：$r = x/n$。
+
+我们使用了Enron数据集对不同采样率下的平均搜索时间进行了测试。这里的平均搜索时间为总的时间除以有效搜索的次数。测试结果如图\ref{fig:rateTime}所示。从图中的结果来看，随着采样率的不断增加，平均的搜索时间在呈线性地不断增长。由于多了非验证搜索的时间代价，当采样率接近100\%时，基于采样的验证机制的平均搜索时间将超过验证搜索时间。在采样率比较低的时候，基于采样的验证机制相比验证搜索是有着明显的时间效率提升。比如当采样率为10\%时，基于采样的验证机制的平均搜索时间为0.143秒，相比于验证搜索的平均时间1.13秒有着8倍左右的速度提升。
+\begin{figure}[htb]
+\centerline{
+\begin{tikzpicture}
+\begin{axis}[
+    xlabel={$n$},
+	ylabel={$S$},
+	yticklabel style={/pgf/number format/fixed,
+	    /pgf/number format/precision=1},
+	xticklabel style={/pgf/number format/fixed,
+	    /pgf/number format/precision=0},
+	xmin = 0,
+	xmax = 300,
+	ymin = 0,
+	ymax = 1.0,
+	legend entries= {
+	  $p=0.1\ r=10\%$, 
+	  $p=0.1\ r=30\%$, 
+	  $p=0.2\ r=10\%$,
+	  $p=0.2\ r=30\%$,
+	},
+	legend style={at={(1,0.7)},anchor=north east}
+]
+\addplot[blue,solid,domain=0:500] { 1-exp(x*0.1*ln(1-0.1)) };
+\addplot[red,dotted,domain=0:500] {1-exp(x*0.3*ln(1-0.1))};
+\addplot[black,loosely dashed,domain=0:500] {1- exp(x*0.1*ln(1-0.2)) };
+\addplot[gray,densely dashed,domain=0:500] { 1-exp(x*0.3*ln(1-0.3)) };
+\end{axis}
+\end{tikzpicture}
+}
+\bicaption[fig:ratePoss]{图索引}{一些情况下的正确性保证和有效搜索次数的关系}{Fig}{The relation between the assurance and query times}
+\end{figure}
+
+我们在图\ref{fig:ratePoss}绘制在几种特定云服务商欺骗率p和采样率r的情况下，用户能成功发现云服务商有问题的概率S和用户进行的有效搜素次数n的关系。这里，$S = 1 - (1-p)^{n \times p}$。从图中我们可以看出，随着搜索次数的增多，用户能发现云服务有问题的概率呈指数级增长。在云服务商欺骗率固定的情况下，采样率越高，正确性保证越高。在系统的实际使用中，我们可以考虑动态的调整采样率，比如说刚开始的时候采样率高，一般更早的时候发现云服务是不是有问题，之后的使用中，可以降低采样率来取得更好的性能。同时，我们可以考虑将一些采样验证放在系统空闲时间进行，比如说放在深夜。
 
 \section {大数据集的性能测试}
 \begin{table}[htb]
