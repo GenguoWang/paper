@@ -1,12 +1,12 @@
 \chapter{相关工作}
 \label{chap:relatedwork}
-在本章，我们介绍本课题用到或借鉴的一些相关的工作。首先我们介绍了经常用于加密安全领域的RSA Accumulator\cite{goodrich2002efficient,verifiableindex}以及与之相关的用于集合元素存在性验证的Membership Witness和Nonmembership Witness。其次，我们介绍了使用RSA Accumulator和Membership Witness、Nonmembership Witness来验证集合求交集计算正确性验证的方法。最后我们介绍了一种基于单向加密哈希的查询验证机制。该机制通过向云服务商发送Challenge-Token的方式，使得云服务商不得不进行真实的查询计算才能保证通过用户的验证。该机制提供的是一定概率上的正确性保证。
+在本章，我们介绍本课题用到或借鉴的一些相关的工作。首先我们介绍了经常用于加密安全领域的RSA Accumulator\upcite{goodrich2002efficient,verifiableindex}以及与之相关的用于集合元素存在性验证的Membership Witness和Nonmembership Witness。其次，我们介绍了使用RSA Accumulator和Membership Witness、Nonmembership Witness来验证集合求交集计算正确性验证的方法。最后我们介绍了一种基于单向加密哈希的查询验证机制。该机制通过向云服务商发送Challenge-Token的方式，使得云服务商不得不进行真实的查询计算才能保证通过用户的验证。该机制提供的是一定概率上的正确性保证。
 
 \section{RSA Accumulator}
 在文章\cite{benaloh1994one}中，Benaloh和de Mare首次提出了One-way Accumulator的概念。One-way Accumulator主要是用来将一个集合的所有元素累积到一个比较小的值，同时该值保有一定了原集合的信息，可以用来做一些集合属性的验证。
 
-本课题使用的验证系统是基于一种特别的One-way Accumulator：RSA Accumulator\cite{goodrich2002efficient}.
-RSA Accumulator是One-way Accumulator\cite{benaloh1994one}的一种直观的扩展。它可以用来计算集合的membership witness(用于证明一个元素属于一个集合)和nonmembership witness(用于证明一个元素不属于一个集合)。在强RSA假设的保证下\cite{baric1997collision}，人们是无法在有限计算资源下伪造出这些Witness的。我们取整数k为加密强度参数，k越大加密级别越高。令 $l = \lfloor k/2 \rfloor - 2$，并令 $\chi_k$ 为集合$\mathbb{Z}_{2^l}$中的质数元素的集合，取$n = pq$为长度k的随机的模数，其中p和q是两个长度相等的安全质数。
+本课题使用的验证系统是基于一种特别的One-way Accumulator：RSA Accumulator\upcite{goodrich2002efficient}.
+RSA Accumulator是One-way Accumulator\upcite{benaloh1994one}的一种直观的扩展。它可以用来计算集合的membership witness(用于证明一个元素属于一个集合)和nonmembership witness(用于证明一个元素不属于一个集合)。在强RSA假设的保证下\upcite{baric1997collision}，人们是无法在有限计算资源下伪造出这些Witness的。我们取整数k为加密强度参数，k越大加密级别越高。令 $l = \lfloor k/2 \rfloor - 2$，并令 $\chi_k$ 为集合$\mathbb{Z}_{2^l}$中的质数元素的集合，取$n = pq$为长度k的随机的模数，其中p和q是两个长度相等的安全质数。
 
 取集合$\chi_k$的一个子集X = \{$x_1, x_2, ... , x_{|X|}$\}作为输入集合，那么集合X的每个元素就都是质数，并取g为n的一个随机的二次剩余模量。那么集合X的Accumulator为:
 \begin{equation} c = g^{\prod_{i = 1}^{|X|} x_i}\ mod\ n \end{equation}
@@ -18,7 +18,7 @@ RSA Accumulator是One-way Accumulator\cite{benaloh1994one}的一种直观的扩�
 
 如果我们要验证$x_j \in X$的话，只需要验证$(c_{x_j})^{x_j} = c\ mod\ n$是否成立。
 
-对于一个属于$\chi_k$却不属于集合X的元素x，它的Nonmember Witness为一个二元组(a,d)\cite{li2007universal},其中a和d满足：
+对于一个属于$\chi_k$却不属于集合X的元素x，它的Nonmember Witness为一个二元组(a,d)\upcite{li2007universal},其中a和d满足：
 \begin{equation} c^a = d^x\ mod\ n\end{equation}
 
 以上说的Membership Witness和Nonmembership Witness都是针对单个元素的，如果需要一次验证多个元素，那么我就就需要计算多个Witness并进行多次验证，这显得非常效率底下。为了处理多个元素的情况，以上的方法被稍微进行一些如下扩展，使之可以用作多个元素的Membership Witness和Nonmembership Witness。
@@ -51,9 +51,9 @@ $au + bv = 1, d = g^{-b}\ mod\ n, u = \prod_{x \in X} x, v = \prod_{y \in Y} y$
 上面我们讲了两个集合交集的证明，简单扩展性就可以用于多个集合。对于m个集合的交集 $X = X_1 \bigcap X_2 \bigcap ... \bigcap X_m$。正确性证明还是和两个集合的情况一样，只是变成需要m个Membership Witness。至于完整性证明的话，我们还是选$X^\prime = X_1 - X$，那么我们需要证明$X^\prime$的每个元素至少不属于$X_2, X_3,...,X_m$中的一个。也就是说，我们需要对$X^\prime$的每个元素计算一个Nonmembership Witness。考虑到每个集合含有元素的多少可能会有较大的差异，我们可以选择含有元素最少的集合代替$X_1$来计算$X^\prime$，这样得到的$X^\prime$也是含有最少的元素数目，这样我们需要的Nonmembership Witness的数目也是最少的。
 
 \section{一种基于加密哈希的查询验证方式}
-哈希算法是一种将任意长度的数据映射到固定长度数据的一种算法，而且输入数据的细微改变都会导致输出的巨大差异。单向加密哈希(One-way Cryptographic hash)\cite{CHash}是指哈希算法里面被认为无法进行逆运算的那一类，也就是说无法从给定的哈希值中计算出原来的输入数据是什么。由于这种不可逆性，单向加密哈希很多信息安全领域里众多应用，比如数字签名、信息认证以及各类形式的认证。
+哈希算法是一种将任意长度的数据映射到固定长度数据的一种算法，而且输入数据的细微改变都会导致输出的巨大差异。单向加密哈希(One-way Cryptographic hash)\upcite{CHash}是指哈希算法里面被认为无法进行逆运算的那一类，也就是说无法从给定的哈希值中计算出原来的输入数据是什么。由于这种不可逆性，单向加密哈希很多信息安全领域里众多应用，比如数字签名、信息认证以及各类形式的认证。
 
-\myfig{chash.eps}{3.5in}{一种数据委托模型\cite{sion2005query}}{chash}{Database Outsourcing Overview\cite{sion2005query}}
+\myfig{chash.eps}{3.5in}{一种数据委托模型\upcite{sion2005query}}{chash}{Database Outsourcing Overview\upcite{sion2005query}}
 文章\cite{sion2005query}中就提出了一种基于加密哈希的查询验证方式。如图\ref{fig:chash}中所示，数据拥有者Alice把他的数据委托给数据服务商Bob来进行管理。Alice对数据进行的任何操作都是通过数据服务商提供的接口进行的，因此Alice无法得知数据服务商的内部操作是否是正确执行的。
 
 考虑这样一个场景，Alice发送了b个查询 $\mathbb{Q} = \{Q_1, Q_2, ... ,Q_b\}$给Bob。
@@ -61,7 +61,7 @@ Bob收到这个查询之后，执行了查询过程，然后给Alice返回了结
 
 对于一个恶意的服务商，Bob可能为了节省自己的计算资源，随意的伪造了查询结果，或者只是计算了部分的查询。
 
-参考了ringers\cite{golle2001uncheatable}的设计思路，作者提出了使用Challenge-Token来验证Bob的返回结果。
+参考了ringers\upcite{golle2001uncheatable}的设计思路，作者提出了使用Challenge-Token来验证Bob的返回结果。
 
 \textbf{Challenge-Tokens} 对每一批查询$\mathbb{Q} = \{Q_1, Q_2, ... ,Q_b\}$, 数据拥有着随机选择一个只有自己知道的数 $x \in [1, b]$，同时选择一个一次性的随机数$\epsilon$，然后用他们计算出一个Challege Token:
 \begin{equation} C(\mathbb{Q}, x, \epsilon) = \{H(\epsilon \parallel \rho(Q_x)), \epsilon\}\end{equation}
@@ -93,7 +93,7 @@ Bob收到这个查询之后，执行了查询过程，然后给Alice返回了结
 最后，服务商成功在计算w<b个查询的情况下，成功骗过客户端的概率为:
 \begin{equation} P(w,r) = \sum_{i=max(0,w+r-b)}^{min(r,w)} [P_0(b,w,r,i) \times P_1(b-w,r-i)] = \frac{1}{\binom{b}{r}}\sum_{i=max(0,w+r-b)}^{min(r,w)}\binom{w}{i} \end{equation}
 
-\myfig{pro.eps}{3.5in}{b = 20情况下的一些P(w,r)值\cite{sion2005query}}{pro}{The behavior of P(w,r) with b = 20\cite{sion2005query}}
+\myfig{pro.eps}{3.5in}{b = 20情况下的一些P(w,r)值\upcite{sion2005query}}{pro}{The behavior of P(w,r) with b = 20\upcite{sion2005query}}
 如图\ref{fig:pro}所示，在增加了Challenge-Token之后，服务商要达到同样的欺骗成功概率就需要执行多的多的查询。比如说，对于20个查询和3个Challenge-Token的情况，如果需要达到40\%的欺骗成功率，那么服务商至少需要执行其中的14个查询。而当只有一个Challenge-Token时，它只需要执行一个查询。
 
 当然，客户端检测的方式也同样可以使用增加检测的查询数目来降低被服务商欺骗成功的概率。架势客户端选择了$1 < r \le w$个查询结果进行检查，那么被服务商成功欺骗的概率为：
@@ -109,7 +109,7 @@ Bob收到这个查询之后，执行了查询过程，然后给Alice返回了结
 在增加了假Challenge-Token之后，服务商如果还是要在只计算w < b个查询的情况下伪造结果试图骗过数据拥有者，那么需要猜测有哪些Challenge-Token，成功欺骗的概率为:
 \begin{equation}P^\prime(w,r,f) = \frac{1}{\binom{b}{r}}\sum_{i=max(0,w+r-b)}^{min(r,w)}[\frac{\binom{w}{i}}{min(b-w,max(1,r+f-i))}]\end{equation}
 
-\myfig{allpro.eps}{3.5in}{几种方式的概率比较\cite{sion2005query}}{allpro}{The behavior of different method\cite{sion2005query}}
+\myfig{allpro.eps}{3.5in}{几种方式的概率比较\upcite{sion2005query}}{allpro}{The behavior of different method\upcite{sion2005query}}
 
 图\ref{fig:allpro}中给出了前面提到的几种方式的概率比较。从图中我们可以看出，在增加了2个假Challenge-Token的时候，服务商成功欺骗的概率相比$P_c(w,r=2)$已经降低了一半，而且通过再增加假Challenge-Token，可以进一步降低这个概率。而且增加假Challenge-Token的只需要随机生成一个数据，代价是很小的。
 

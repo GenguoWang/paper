@@ -169,6 +169,7 @@
   linkcolor=blue,%
   citecolor=blue,%
   plainpages=false,%
+  urlcolor=black,
   pdfstartview=FitH
 }
 \fi
@@ -360,13 +361,13 @@
 }
 
  % 中文摘要
- \newenvironment{abstract}{\chapter[摘要]{\sjtu@value@title\vskip 20pt\sjtu@label@abstract}}{}
+ \newenvironment{abstract}{\chapter*{\sjtu@value@title\vskip 20pt\sjtu@label@abstract}\markboth{摘要}{}}{}
 
  % 中文关键词
  \newcommand\keywords[1]{\vspace{2ex}\noindent{\bf\large \sjtu@label@keywords} #1}
 
  %_ 英文摘要
- \newenvironment{englishabstract}{\chapter[ABSTRACT]{\sjtu@value@englishtitle\vskip 20pt\bfseries \sjtu@label@englishabstract}}{}
+ \newenvironment{englishabstract}{\chapter*{\sjtu@value@englishtitle\vskip 20pt\bfseries \sjtu@label@englishabstract}\markboth{Abstract}{}}{}
 
  % _英文摘要
  \newcommand\englishkeywords[1]{\vspace{2ex}\noindent{\bf\large \sjtu@label@englishkeywords} #1}
@@ -378,7 +379,7 @@
   \else
   \@restonecolfalse
   \fi
-  \chapter{\contentsname}%目录里显示“目录”，否则\chapter*
+  \chapter*{\contentsname}%目录里显示“目录”，否则\chapter*
   \@mkboth{\MakeUppercase\contentsname}{\MakeUppercase\contentsname}%
   \@starttoc{toc}%
   \if@restonecol\twocolumn\fi
