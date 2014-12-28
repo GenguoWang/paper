@@ -9,10 +9,10 @@
 
 \begin{abstract}
 随着计算机硬件和网络带宽的发展，云计算在个人的日常使用中以及商业用途中扮演起了越来越重要的角色。
-得益于云存储的大容量，高可靠性，易访问性的特点，越来越多的个人和企业选择了把他们的文档存储到了云存储上。
+得益于云存储的大容量、高可靠性、易访问性的特点，越来越多的个人和企业选择了把他们的文档存储到了云存储上。
 在对云文档的操作里面，搜索是一项非常常用也非常有用的功能。
 怎么保证云搜索的结果是正确的这个问题也变得重要起来。
-在这个问题上已经有不少的相关工作，但是一个高效的高扩展性的系统到现在也没有推广开来。
+在这个问题上已经有不少的相关研究工作，但是一个高效的高扩展性的系统到现在也没有推广开来。
 
 在研究了一些现有的验证方案之后，我们提出并设计实现了一个更加高效实用的云搜索正确性的快速验证系统。
 首先，我们设计了一套基于RSA Accumulator的验证机制并在这个验证机制上设计实现了一个云搜索验证系统。
@@ -43,12 +43,12 @@
 	How to proof the correctness of the searching result is an problem coming with this feature.
 	Previous work has proposed many useful theories on verifiable computing, such as probabilistically checkable proofs, authHashtable, but an efficient and scalable system is rare.
 
-	In our research, first, We design and implement a fast proof generating system for verifying cloud search based on RSA accumulators, membership witnesses and nonmembership witnesses. We split our system into modules and every module is process that makes out system have high expansibility and maintainability. 
+	In our research, first, we design and implement a fast proof generation system for verifying cloud search based on RSA accumulators, membership witnesses and nonmembership witnesses. We split our system into modules and every module is a process that makes out system have high expansibility and maintainability. 
 	Then, in order to reduce the correctness proof generation time of large document set, we design and implement the tree-structure proof which splits the large set into multiple small sets to speed up the computing. We also present a method of using tree-structure to calculate integrity proof.
 	We implement a lightweight parallel computing framework which can easily use different number of computers to calculate the tree-structure proof.
 	Finally, we design a probabilistically checkable method based on sampling. This methed lets user can make tradeoff between performace and assurance level.
 
-    Experimental results show that by using the tree-structure proof the correctness proof generation speed has an average speedup of 2.5. For the overall performance, our system have a speedup of 2 compared to the straightforward way. Our system can handle dataset with a size of 100GB in our experimeental environment.
+    Experimental results show that by using the tree-structure proof the correctness proof generation speed has an average speedup of 2.5. For the overall performance, our system has a speedup of 2 compared to the straightforward way. Our system can handle dataset with a size of 100GB in our experimental environment.
 
 	\englishkeywords{\large Cloud Computing, Verifiable Computing, Document Search}
 \end{englishabstract}
