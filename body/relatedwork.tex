@@ -5,7 +5,7 @@
 \section{RSA Accumulator}
 在文章\cite{benaloh1994one}中，Benaloh和De Mare首次提出了One-way Accumulator的概念。One-way Accumulator主要是用来将一个集合的所有元素累积到一个比较小的值，同时该值保有了一定的原集合的信息，可以用来做一些集合属性的验证。
 
-本课题使用的验证系统是基于一种特别的One-way Accumulator：RSA Accumulator\upcite{goodrich2002efficient}.
+本课题使用的验证系统是基于一种特别的One-way Accumulator：RSA Accumulator\upcite{goodrich2002efficient}。
 RSA Accumulator是One-way Accumulator\upcite{benaloh1994one}的一种直观的扩展。它可以用来计算集合的Membership Witness(用于证明一个元素属于一个集合)和Nonmembership Witness(用于证明一个元素不属于一个集合)。在强RSA假设的保证下\upcite{baric1997collision}，人们是无法在有限计算资源下伪造出这些Witness的。我们取整数k为加密强度参数，k越大则加密级别越高。令 $l = \lfloor k/2 \rfloor - 2$，并令 $\chi_k$ 为集合$\mathbb{Z}_{2^l}$中的质数元素的集合，取$n = pq$为长度k的随机的模数，其中p和q是两个长度相等的安全质数。
 
 取集合$\chi_k$的一个子集X = \{$x_1, x_2, ... , x_{|X|}$\}作为输入集合，那么集合X的每个元素就都是质数，并取g为n的一个随机的二次剩余模量。那么集合X的Accumulator为:
@@ -18,12 +18,12 @@ RSA Accumulator是One-way Accumulator\upcite{benaloh1994one}的一种直观的�
 
 如果我们要验证$x_j \in X$的话，只需要验证$(c_{x_j})^{x_j} = c\ mod\ n$是否成立。
 
-对于一个属于$\chi_k$却不属于集合X的元素x，它的Nonmembership Witness为一个二元组(a,d)\upcite{li2007universal},其中a和d满足：
+对于一个属于$\chi_k$却不属于集合X的元素x，它的Nonmembership Witness为一个二元组(a,d)\upcite{li2007universal}，其中a和d满足：
 \begin{equation} c^a = d^x\ mod\ n\end{equation}
 
 以上说的Membership Witness和Nonmembership Witness都是针对单个元素的，如果需要一次验证多个元素，那么我就就需要计算多个Witness并进行多次验证，这显得非常效率低下。为了处理多个元素的情况，以上的方法被稍微进行一些如下扩展，使之可以用作多个元素的Membership Witness和Nonmembership Witness。
 
-我们取X的子集$X^{\prime} = \{x_{i_1}, x_{i_2}, ... , x_{i_{|X^\prime|}}\}$， 那么$X^\prime \subseteq X$的Membership Witness为:
+我们取X的子集$X^{\prime} = \{x_{i_1}, x_{i_2}, ... , x_{i_{|X^\prime|}}\}$，那么$X^\prime \subseteq X$的Membership Witness为:
 \begin{equation} \label{eq:w} c_{X^\prime} = g^{\prod_{x \in X - X^\prime} x}\ mod\ n \end{equation}
 
 有了这个Membership Witness，我们如果要证明$X^\prime \subseteq X$ 只需要验证下面这个式子是否成立:
@@ -37,7 +37,7 @@ $au + bv = 1, d = g^{-b}\ mod\ n$，这里 $u = \prod_{x \in X} x, v = \prod_{y 
 \begin{equation} \label{eq:vnw} c^a = d^v g\ mod\ n \end{equation}
 
 \section{集合交集的证明}
-有了上一个小结介绍的Accumulator和Witness, 我们在这里介绍一种方法，可以用它们来生成集合交集是否正确的证明以及相应的验证方法。比如说有个用户要求计算两个集合$X_1$和$X_2$的交集，然后云端就计算了 $X = X_1 \bigcap X_2$返回给用户，同时返回由X分别属于$X_1$和$X_2$的Membership Witness组成的正确性证明。由于Membership Witness是无法伪造的，用户可以通过等式\ref{eq:vw}来验证X是不是正确的结果。
+有了上一个小结介绍的Accumulator和Witness，我们在这里介绍一种方法，可以用它们来生成集合交集是否正确的证明以及相应的验证方法。比如说有个用户要求计算两个集合$X_1$和$X_2$的交集，然后云端就计算了 $X = X_1 \bigcap X_2$返回给用户，同时返回由X分别属于$X_1$和$X_2$的Membership Witness组成的正确性证明。由于Membership Witness是无法伪造的，用户可以通过等式\ref{eq:vw}来验证X是不是正确的结果。
 
 但是这里还存在一个问题，就是计算结果X可能没有包含全部的交集元素。这个时候X也满足同时属于$X_1$和$X_2$，可以通过用户的验证，但却不是正确的结果。这说明仅仅用正确性证明是不够的。为了处理这种只返回部分结果的情况，我们需要一个完整性证明来保证集合X包含集合$X_1$和$X_2$的交集的全部元素。也就是说($X_1 - X$)不包含任何属于集合$X_2$的元素。这样的完整性证明有以下几个部分组成:
 \begin{itemize}
@@ -63,7 +63,7 @@ $au + bv = 1, d = g^{-b}\ mod\ n$，这里 $u = \prod_{x \in X} x, v = \prod_{y 
 
 参考了ringers\upcite{golle2001uncheatable}的设计思路，作者提出了使用Challenge-Token来验证数据服务商的返回结果。
 
-对每一批查询$\mathbb{Q} = \{Q_1, Q_2, ... ,Q_b\}$, 数据拥有着随机选择一个只有自己知道的数 $x \in [1, b]$，同时选择一个一次性的随机数$\epsilon$，然后用它们计算出一个Challenge-Token:
+对每一批查询$\mathbb{Q} = \{Q_1, Q_2, ... ,Q_b\}$，数据拥有着随机选择一个只有自己知道的数 $x \in [1, b]$，同时选择一个一次性的随机数$\epsilon$，然后用它们计算出一个Challenge-Token:
 \begin{equation} C(\mathbb{Q}, x, \epsilon) = \{H(\epsilon \parallel \rho(Q_x)), \epsilon\}\end{equation}
 这里，$\parallel$表示按位连接，H是一个单向加密哈希函数。
 

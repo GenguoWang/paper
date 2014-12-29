@@ -6,7 +6,7 @@
 
 \section{数据集}
 
-在我们这次的实验评估中，我们使用了两个数据集：一个是Enron Email, 另一个是Wikipedia。
+在我们这次的实验评估中，我们使用了两个数据集：一个是Enron Email，另一个是Wikipedia。
 
 Enron Email：该数据集是一些用户电子邮件的合集，都是一些txt格式的文本文件。该数据集有着类似一般用户日常使用的规模。我们选择了其中用户Mann-k的电子邮件，用来测试我们的系统在一般用户日常使用时的性能表现。
 
@@ -15,7 +15,7 @@ Wikipedia：该数据集是维基百科的英文版本数据集，文档内容�
 在表\ref{tab:dataset_stat}里，我们给出了这两个数据集的一些数据概况。在每个数据集上我们都选择了一些比较费时间的查询来进行考验效率的情况下的测试，同时我们也随机选择了一些常见的查询来进行一般情况下的性能测试。
 \begin{table}[htb]
     \centering
-    \bicaption[tab:dataset_stat]{表}{数据集的概况}{Tab.}{Statistics of datasets}
+    \bicaption[tab:dataset_stat]{表}{数据集的概况}{Table.}{Statistics of datasets}
     \begin{tabular}{cccccc}
         \toprule
         数据集 & 文档数目 & 词条数目 & 大小 \\
@@ -40,7 +40,7 @@ Wikipedia：该数据集是维基百科的英文版本数据集，文档内容�
 \section {正确性证明的性能比较}
 \begin{table}[htb]
     \centering
-    \bicaption[tab:correctness_speedup]{表}{正确性证明的生成速度提升}{Tab.}{The Speedup of Building Correctness Proof}
+    \bicaption[tab:correctness_speedup]{表}{正确性证明的生成速度提升}{Table.}{The Speedup of Building Correctness Proof}
     \begin{tabular}{cccccc}
         \toprule
         查询编号 & 直接计算时间(s) & 树状证明时间(s) & 速度提升 \\
@@ -63,7 +63,7 @@ Wikipedia：该数据集是维基百科的英文版本数据集，文档内容�
 
 \begin{table}[htb]
     \centering
-    \bicaption[tab:overall_speedup]{表}{总体提升}{Tab.}{The overall speedup}
+    \bicaption[tab:overall_speedup]{表}{总体提升}{Table.}{The overall speedup}
     \begin{tabular}{cccccc}
         \toprule
         查询编号 & 直接计算时间(s) & 本系统时间(s) & 速度提升 \\
@@ -86,7 +86,7 @@ Wikipedia：该数据集是维基百科的英文版本数据集，文档内容�
 \section{验证时间的比较}
 \begin{table}[htb]
     \centering
-	\bicaption[tab:verifying_time]{表}{结果证明的验证时间}{Tab.}{Verification time}
+	\bicaption[tab:verifying_time]{表}{结果证明的验证时间}{Table.}{Verification time}
     \begin{tabular}{cccccc}
         \toprule
         查询编号 & 本系统(s) & 直接计算(s) \\
@@ -112,8 +112,8 @@ Wikipedia：该数据集是维基百科的英文版本数据集，文档内容�
 \centerline{
 \begin{tikzpicture}
 \begin{axis}[
-    xlabel={$r$},
-	ylabel={$t(s)$},
+    xlabel={$sampling\ rate$},
+	ylabel={$time(s)$},
 	yticklabel style={/pgf/number format/fixed,
 	    /pgf/number format/precision=1},
 	xticklabel={\pgfmathparse{\tick*100}\pgfmathprintnumber{\pgfmathresult}\%},
@@ -168,8 +168,8 @@ node[pos=0.75]{非验证搜素时间}
 \centerline{
 \begin{tikzpicture}
 \begin{axis}[
-    xlabel={$n$},
-	ylabel={$S$},
+    xlabel={$query\ times$},
+	ylabel={$assurance\ probability$},
 	yticklabel style={/pgf/number format/fixed,
 	    /pgf/number format/precision=1},
 	xticklabel style={/pgf/number format/fixed,
@@ -201,7 +201,7 @@ node[pos=0.75]{非验证搜素时间}
 \section {大数据集的性能测试}
 \begin{table}[htb]
     \centering
-	\bicaption[tab:wiki_speedup]{表}{Wikipedia数据集上的性能测试结果}{Tab.}{The performance on dataset wikipedia}
+	\bicaption[tab:wiki_speedup]{表}{Wikipedia数据集上的性能测试结果}{Table.}{The performance on dataset wikipedia}
     \begin{tabular}{cccccc}
         \toprule
         查询编号 & 耗时(s) \\

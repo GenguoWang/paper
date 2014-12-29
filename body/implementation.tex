@@ -19,7 +19,7 @@
 
 下面我们按照模块对云搜索正确性的快速验证系统进行介绍。
 
-\myfig{framework.eps}{3.5in}{系统线上部分的整体框架 }{des:structure}{Structure of our system's online part}
+\myfig{framework.pdf}{3.5in}{系统线上部分的整体框架 }{des:structure}{Structure of our system's online part}
 
 \subsection{Index Generator}
 Index Generator是一个单独的工具，它不需要和别的模块进行交互。它主要负责的对于一个文本集合进行可验证索引的建立操作。我们采用了Indri Indexer\upcite{Indri}来生成倒排索引。在生成了倒排索引之后，我们从中抽取出我们需要的内容，用来生成可验证索引。对于生成的可验证索引，我们以文件的形式存储到磁盘上。索引的数据比较大，为了减少单个文件的体积，同时也为了方便使用多模块处理，我们将索引数据使用一致性哈希\upcite{ConsistentHash}的方式存储到多个文件中。生成的索引数据文件组织如下：
@@ -50,7 +50,7 @@ Search Server: 如其名所言，是负责接收搜索任务的模块。
 到这里，本次搜索的过程就结束了。
 
 \subsection{Query Node}
-Query Node是负责索引查询的模块。在我们的系统中，索引被按照一致性哈希的方式分成了M份。如果我们有N个Query Node, 我们用0，1，2…N-1进行编号。编号为i的Query Node负责编号为i, i+N, i+2*N,…的索引文件。当一个查询到来的时候，Query Node查询自己负责的那部分索引里面是否有本次搜索包含的关键词部分，如果有就返回相应的内容，如果没有就告知没有。
+Query Node是负责索引查询的模块。在我们的系统中，索引被按照一致性哈希的方式分成了M份。如果我们有N个Query Node，我们用0，1，2…N-1进行编号。编号为i的Query Node负责编号为i, i+N, i+2*N,…的索引文件。当一个查询到来的时候，Query Node查询自己负责的那部分索引里面是否有本次搜索包含的关键词部分，如果有就返回相应的内容，如果没有就告知没有。
 
 \subsection{Correctness Server}
 Correctness Server是负责计算正确性证明的模块。Correctness Server使用了稍后会介绍的树状证明结构。该结构能够将正确性计算从一次非常耗时的计算分解成多个可以快速计算的小任务，以此来充分利用计算机集群以及多个CPU核来加快计算的速度。
@@ -64,12 +64,12 @@ Integrity Server是负责计算完整性证明的模块。该计算与正确性�
 
 \subsection{树状结构证明的设计}
 
-\myfig{tree.eps}{3.5in}{由20个文档组成， e = 4的树状结构}{des:tree}{Tree structure with 20 documents and e = 4}
+\myfig{tree.pdf}{4.5in}{由20个文档组成， e = 4的树状结构}{des:tree}{Tree structure with 20 documents and e = 4}
 我们取 D = $\{d_1, d_2, ..., d_n\}$表示某个关键词的倒排索引里面的文档集合。
 我们取D的子集 S = $\{d_{i_1}, d_{i_2}, ..., d_{i_s}\}$，那么按照公式\ref{eq:w}提的方法，我们要计算集合S属于集合D的Membership Witness的话，我们需要对集合D里面的每一个元素进行累乘，然后进行一次乘方计算。
 在我们的设计里面使用了GMP这个库进行高精度数学计算。经过测试，我们发现连续乘方的速度比先累乘的速度要快很多。比如计算$g^{ab}$，连续乘方指先计算$g^a$，再计算$(g^a)^b$；先累乘指先计算$ab$，然后计算$g^{(ab)}$。于是我们就采用了连续乘方的方式。但连续乘方这样的计算方式有一个问题，那就是计算步骤是相互依赖的，于是没法使用并行计算进行加快。
 文章\cite{papamanthou2008authenticated}提出了一种RSA树的结构用来进行高效地集合元素存在性验证。我们在其基础上设计了树状结构证明这个利用树状结构来计算正确性证明的方式。
-我们取e为大于1的整数，对于文档集合D，我们对其进行树状结构的构建。为了便于描述，我们把这样的树叫做T(e, D),它有如下的特点:
+我们取e为大于1的整数，对于文档集合D，我们对其进行树状结构的构建。为了便于描述，我们把这样的树叫做T(e, D)，它有如下的特点:
 \begin{enumerate}
   \item T(e, D) 是一颗三层的树
   \item 叶子节点保存文档的质数表示。第i个叶子节点保存文档$d_i$的质数表示。
@@ -78,12 +78,12 @@ Integrity Server是负责计算完整性证明的模块。该计算与正确性�
 \end{enumerate}
 
 在图\ref{fig:des:tree}中我们展示了由一个包含20个文档的集合生成的树状结构。
-对于这样的结构，我们如果要证明某个叶子存在，可以先证明它属于某个中间层节点，然后再证明这个中间层节点存在，也就是证明这个中间层节点属于根节点。按照这个思路，我们取$M = \{m_0, m_1, ..., m_{m-1}\}$，$G(m_i) = \{d_j$ | $d_j$ 是 $m_i$的子节点 \}, 取D的子集$S = \{d_{i_1}, d_{i_2}, ..., d_{i_s}\}$。 那么我们对于 $S \subseteq D$ 的树状结构证明是按照如下步骤计算的:
+对于这样的结构，我们如果要证明某个叶子存在，可以先证明它属于某个中间层节点，然后再证明这个中间层节点存在，也就是证明这个中间层节点属于根节点。按照这个思路，我们取$M = \{m_0, m_1, ..., m_{m-1}\}$，$G(m_i) = \{d_j$ | $d_j$ 是 $m_i$的子节点 \}，取D的子集$S = \{d_{i_1}, d_{i_2}, ..., d_{i_s}\}$。 那么我们对于 $S \subseteq D$ 的树状结构证明是按照如下步骤计算的:
 \begin{enumerate}
   \item 把S拆分成 $S_0$, $S_1$, $S_{m-1}$，其中 $S_i$ = $S \bigcap G(m_i)$。 也就是说 $S_i$ 包含S中的那些属于第i个中间层节点的元素。
   \item 对于每个非空的 $S_i$，我们计算 $S_i \subseteq G(m_i)$的Membership Witness：$p_i = g^{\Pi_{\mu \in G(m_i) - S_i} r(\mu)}\ mod\ N$，这里 $r(\mu)$ 是 $\mu$的质数表示。 
   \item 对于每个非空的 $S_i$，我们计算 $m_i \in M$的Membership Witness：$q_i =  g^{\Pi_{\mu \in M, \mu \ne m_i} r(\mu)}\ mod\ N$。
-  \item 我们的树状证明由全部的$(S_i, p_i, q_i, m_i, a)$元组组成 , 这里的a是集合M的Accumulator。
+  \item 我们的树状证明由全部的$(S_i, p_i, q_i, m_i, a)$元组组成，这里的a是集合M的Accumulator。
 \end{enumerate}
 
 有了这样的树状结构证明，我们就可以按照以下步骤进行验证:
@@ -127,7 +127,7 @@ Integrity Server是负责计算完整性证明的模块。该计算与正确性�
 
 
 \subsection{树状结构证明的计算: Worker任务分配机制}
-\myfig{job.eps}{4.5in}{Worker任务分配机制的框架}{worker}{Framework of worker job dispatcher}
+\myfig{job.pdf}{4.5in}{Worker任务分配机制的框架}{worker}{Framework of worker job dispatcher}
 在树状结构证明的计算中，我们有很多小集合的证明可以并行计算。为了能够方便的使用多个进程多个机器来计算这些并行任务，我们设计了这个Worker任务分配机制。如图\ref{fig:worker}所示，Worker任务分配机制的主要工作流程是Manage Processor从任务拥有者接收一系列任务，然后把任务分派给各个Worker Processor去执行。最后Manage Processor把Worker Processor的执行结果收集汇总，然后返回给任务拥有者。
 
 \begin{figure}[htb]
